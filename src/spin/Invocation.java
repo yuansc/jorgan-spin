@@ -30,6 +30,7 @@ public abstract class Invocation {
   private Object    object;
   private Method    method;
   private Object[]  args;
+  private boolean   evaluated;
   private Throwable throwable;
   private Object    result;
 
@@ -124,5 +125,16 @@ public abstract class Invocation {
     } catch (Throwable throwable) {
       this.throwable = throwable;
     }
+    
+    evaluated = true;
+  }
+  
+  /**
+   * Test if this invocation is already evaluated.
+   * 
+   * @return <code>true</code> if evaluation has finished
+   */
+  public boolean isEvaluated() {
+    return evaluated;
   }
 }

@@ -72,6 +72,10 @@ public class OffInvocation extends Invocation {
       });
 
       dispatcher.start();
+      
+      if (!isEvaluated()) {
+        throw new Error("dispatcher stopped prematurely");
+      }
     } else {
       evaluate();
     }

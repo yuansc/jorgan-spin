@@ -57,7 +57,7 @@ public class AWTReflectDispatcherFactory implements DispatcherFactory {
   /**
    * Dispatcher with reflection of AWT.
    */
-  private class AWTReflectDispatcher implements Dispatcher, InvocationHandler, Runnable {
+  private class AWTReflectDispatcher implements Dispatcher, InvocationHandler {
 
     /**
      * Flag indicating that dispatching should stop.
@@ -74,6 +74,14 @@ public class AWTReflectDispatcherFactory implements DispatcherFactory {
         Object conditional = Proxy.newProxyInstance(conditionalClass.getClassLoader(),
                                                     new Class[]{conditionalClass}, this);
         pumpMethod.invoke(Thread.currentThread(), new Object[]{conditional});
+        
+        synchronized (this) {
+          // if the EDT refuses to pump events (e.g. because of a sun.awt.AWTAutoShutdown)
+          // we can do nothing else but wait for stop() to be called
+          while (!stopDispatching) {
+            wait();
+          }
+        }
       } catch (InvocationTargetException ex) {
         throw ex.getTargetException();
       }
@@ -83,15 +91,17 @@ public class AWTReflectDispatcherFactory implements DispatcherFactory {
      * Stop dispatching.
      */
     public void stop() {
+      synchronized (this) {
+        stopDispatching = true;
+        
+        // notify possibly waiting start()
+        notifyAll();
+      }
 
-      SwingUtilities.invokeLater(this);
-    }
-
-    /**
-     * Called on the EDT to stop the dispatching.
-     */    
-    public void run() {
-      stopDispatching = true;
+      // force the event queue to re-evaluate our conditional
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {}
+      });
     }
 
     /**
