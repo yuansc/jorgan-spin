@@ -26,15 +26,12 @@
         <mkdir dir="./dist"/>
         <jar destfile="./dist/spin.jar">
             <fileset dir="./classes">
-                <include name="**/*"/>
+                <exclude name="spin/demo/**/*"/>
             </fileset>
         </jar>
-        <zip destfile="./dist/spin-1.3.zip">
+        <zip destfile="./dist/spin-1.3.1.zip">
             <fileset dir=".">
-                <include name="build.xml"/>
-                <include name="src/**/*"/>
-                <include name="docs/**/*"/>
-                <include name="dist/spin.jar"/>
+                <exclude name="classes/**/*"/>
             </fileset>
         </zip>
     </target>
