@@ -18,8 +18,20 @@
  */
 package spin.over;
 
+import java.awt.Component;
+
 /**
  * Exception signaling a violation of the EDT rule.
  */
 public class EDTRuleViolation extends RuntimeException {
+    
+    private Component component;
+    
+    public EDTRuleViolation(Component component) {
+        this.component = component;
+    }
+    
+    public Component getComponent() {
+        return component;
+    }
 }

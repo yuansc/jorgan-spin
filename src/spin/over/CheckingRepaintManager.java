@@ -30,6 +30,7 @@ import javax.swing.SwingUtilities;
  * <pre>
  *   RepaintManager.setCurrentManager(new CheckingRepaintManager());
  * </pre>
+ * Based on an idea by Scott Delap (http://www.clientjava.com).
  * 
  * @see javax.swing.RepaintManager 
  */
@@ -62,7 +63,7 @@ public class CheckingRepaintManager extends RepaintManager {
      */
     protected void checkEDTRule(Component component) {
         if (violatesEDTRule(component)) {
-            EDTRuleViolation violation = new EDTRuleViolation();
+            EDTRuleViolation violation = new EDTRuleViolation(component);
 
             StackTraceElement[] stackTrace = violation.getStackTrace(); 
             try {            
