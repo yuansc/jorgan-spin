@@ -126,7 +126,7 @@ public class DirectoryServiceGUI extends JPanel {
      * @see TreeNode
      */
     public TreeNode getChildAt(int childIndex) {
-      return (TreeNode)children[childIndex];
+      return children[childIndex];
     }
 
     /**

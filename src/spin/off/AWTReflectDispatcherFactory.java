@@ -26,7 +26,7 @@ import java.lang.reflect.Proxy;
 import javax.swing.SwingUtilities;
 
 /**
- * A factory of <code>Dispatcher</code>s which use reflection to AWT internals
+ * A factory of <code>Dispatcher</code>s which uses reflection to AWT internals
  * to dispatch events - used as default by <em>Spin</em> for spin-off.
  * <br>
  * Once Swing offers an official way to start an event pump this class should

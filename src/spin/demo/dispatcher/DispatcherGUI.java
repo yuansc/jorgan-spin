@@ -34,12 +34,14 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.border.TitledBorder;
 
 import spin.Spin;
 import spin.demo.Bean;
 import spin.demo.BeanImpl;
 import spin.off.AWTReflectDispatcherFactory;
 import spin.off.DispatcherFactory;
+import spin.off.InternalOptionPaneDispatcherFactory;
 
 /**
  * A demonstration of a GUI using different dispatchers.
@@ -57,9 +59,10 @@ public class DispatcherGUI extends JPanel {
   
   private static Map dispatcherFactories = new HashMap();
   static {
-    dispatcherFactories.put("AWT Reflection"  , new AWTReflectDispatcherFactory());
-    dispatcherFactories.put("Concealed Dialog", new ConcealedDialogDispatcherFactory());
-    dispatcherFactories.put("Revealed Dialog" , new RevealedDialogDispatcherFactory());      
+    dispatcherFactories.put("AWT Reflection"     , new AWTReflectDispatcherFactory());
+    dispatcherFactories.put("Concealed Dialog"   , new ConcealedDialogDispatcherFactory());
+    dispatcherFactories.put("Revealed Dialog"    , new RevealedDialogDispatcherFactory());      
+    dispatcherFactories.put("Internal OptionPane", new InternalOptionPaneDispatcherFactory());      
   }
 
   /**
@@ -89,7 +92,8 @@ public class DispatcherGUI extends JPanel {
       }
     });
     
-    dispatcherFactoryPanel.setLayout(new GridLayout());
+    dispatcherFactoryPanel.setLayout(new GridLayout(0, 1));
+    dispatcherFactoryPanel.setBorder(new TitledBorder("Choose a dispatcher"));
     add(dispatcherFactoryPanel, BorderLayout.NORTH);
 
     // create a radioButton for each available dispatcher factory

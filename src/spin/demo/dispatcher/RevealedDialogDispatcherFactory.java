@@ -51,7 +51,7 @@ public class RevealedDialogDispatcherFactory extends DialogDispatcherFactory {
     Window window = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
       
     if (window == null) {
-      throw new IllegalStateException("no active window");
+      throw new Error("no active Window");
     } else {
       dialog = aquireDialog(window); 
     }
