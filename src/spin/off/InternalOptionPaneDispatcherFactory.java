@@ -61,11 +61,17 @@ public class InternalOptionPaneDispatcherFactory implements DispatcherFactory {
     
     /**
      * Start the dispatching with a modal internal frame in the <code>JRootPane</code>
-     * of the currently active window.
+     * of the currently visible <code>RootPaneContainer</code>.
      */
     public void start() throws Throwable {
       Window window = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      if (window instanceof RootPaneContainer) {
+      while (window != null) {
+        if (window.isVisible() && window instanceof RootPaneContainer) {
+          break;
+        }
+        window = window.getOwner();
+      }
+      if (window != null) {
         JRootPane rootPane = ((RootPaneContainer)window).getRootPane();
 
         JDesktopPane desktop = new JDesktopPane();
@@ -75,7 +81,7 @@ public class InternalOptionPaneDispatcherFactory implements DispatcherFactory {
         
         rootPane.remove(desktop);
       } else {
-        throw new Error("no active JFrame or JDialog");
+        throw new Error("no visible RootPaneContainer");
       }
     }
     
