@@ -406,8 +406,8 @@ public class Spin {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
   
       if (equalsMethod.equals(method)) {
-        return new Boolean(isSpinProxy(object) &&
-                           equals(Proxy.getInvocationHandler(object)));
+        return new Boolean(isSpinProxy(args[0]) &&
+                           equals(Proxy.getInvocationHandler(args[0])));
       } else {
         Invocation invocation = createInvocation();
         invocation.setObject(object);
