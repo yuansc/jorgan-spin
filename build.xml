@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="spin" default="dist" basedir=".">
+
+    <target name="clean" description="Clean directories">
+        <delete dir="./classes"/>
+        <delete dir="./docs/api"/>
+        <delete dir="./dist"/>
+    </target>
+
+    <target name="build" description="Build the source" >
+        <mkdir dir="./classes"/>
+        <javac debug="true" deprecation="true" destdir="./classes" srcdir="./src" />
+    </target>
+
+    <target name="doc" description="Document the api" >
+        <mkdir dir="./docs/api"/>
+        <javadoc sourcepath="src" destdir="docs/api" verbose="true">
+        	<package name="spin"/>
+        	<package name="spin.off"/>
+        	<package name="spin.over"/>
+        </javadoc>
+    </target>
+
+    <target name="dist" description="Set up the distribution" depends="clean, build, doc" >
+        <mkdir dir="./dist"/>
+        <jar destfile="./dist/spin.jar">
+            <fileset dir="./classes">
+                <include name="**/*"/>
+            </fileset>
+        </jar>
+        <zip destfile="./dist/spin-1.3.zip">
+            <fileset dir=".">
+                <include name="build.xml"/>
+                <include name="src/**/*"/>
+                <include name="docs/**/*"/>
+                <include name="dist/spin.jar"/>
+            </fileset>
+        </zip>
+    </target>
+</project>

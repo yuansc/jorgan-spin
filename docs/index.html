@@ -1,0 +1,655 @@
+<!-- saved from url=(0022)http://internet.e-mail -->
+<html>
+
+<head>
+  <title>Spin your Swing</title>
+  <meta name="description"
+        content="Spin transparent threading solution for Swing" />
+  <meta name="keywords"
+        content="Spin, Java, Swing, Thread,EventDispatcher, EventDispatchThread,
+                 EventQueue,SwingWorker,SwingUtilities,invokeLater,
+                 invokeAndWait" />
+  <style type="text/css">
+    <!--
+      *.EDT    { color:#00dd00            }
+      *.notEDT { color:#dd0000            }
+      *.GUI    { background-color:#ddffdd }
+      *.notGUI { background-color:#ffdddd }
+      td.SPIN  { background-color:#ffffdd }
+      span.SPIN{ color:#bbbb00 }
+    -->
+  </style>
+</head>
+
+<body>
+  <h1>
+    Spin your Swing.
+  </h1>
+  <h2>
+    Abstract.
+  </h2>
+  <p align="center">
+    <cite><em>Spin</em> is a transparent threading solution for non-freezing
+    Swing applications.</cite>
+  </p>
+  <p>
+    Swing is the standard component architecture for developing Java desktop
+    applications. Its exhaustive collection of widgets is the foundation for
+    easy development of rich graphical user interfaces (GUI).<br />
+    Alas every non trivial GUI sooner or later encounters the problem of
+    "freeze".
+    This annoying behaviour is experienced by users every time the application
+    performs extensive calculations or blocks for network or disk I/O.
+  </p>
+  <p>
+    In this document we will explain the reason for this problem and explore
+    different techniques to prevent Swing GUIs from "freezing".
+    We will present our project named <em>Spin</em> which offers a - to our
+    knowledge - revolutionary new approach.
+    It offers transparent thread handling with minimal impact on your application
+    code.
+  </p>
+  <p>
+    <em>Spin</em> is hosted at <a href="http://sourceforge.net/projects/spin/">
+    <img align="top" src="http://sourceforge.net/sflogo.php?group_id=3636&type=2"
+         width="125" height="37" border="0" alt="SourceForge.net Logo" />
+    </a> 
+  </p>
+
+  <h2>
+    Standard Swing.
+  </h2>
+  <p>
+    In this section we take a look at a naive GUI implementation that shows how
+    Swing freezes in case the application programmer doesn't take any special
+    actions against it.
+    We also describe the problem of calls into Swing components triggered by any
+    other thread than the event dispatch thread.
+    <br>
+    Swing is not designed for multi threading, so let us first recall the single
+    threading rule of every Swing GUI:
+  </p>
+  <p align="center">
+    <cite>Access to a (visible) Swing component has to occur in the event dispatch
+    thread.</cite>
+  </p>
+  <p>
+    The event dispatch thread (short EDT) is responsible to process all GUI related
+    events, e.g. notifying listeners of user input, repainting dirty regions or
+    updated areas.
+    All these events are enqueued and treated sequentially - if one of them takes
+    a long time to be processed, all further events will have to wait.
+  </p>
+  <p>
+    In the tables throughout this document the left column represents a Swing GUI
+    component, the right column represents a non visual multithreaded bean that
+    encapsulates extensive calculations.
+    Code run on the EDT is <span class="EDT">shown in green</span> and code
+    called by any other thread is <span class="notEDT">shown in red</span>.
+  </p>
+  <p>
+    As you can see in the upper half of the following table, the GUI calls the
+    method <code>getValue()</code> on the bean when an action is performed.
+    The event dispatch thread is routed from the GUI to the bean. While it is
+    performing its calculations no further swing events can be processed - the GUI
+    freezes.<br>
+    One of these queued events is the repaint of the label triggered by
+    <code>label.setText("...")</code>. When <code>getValue()</code> returns, the
+    text of the label is changed again before the previous text was painted.
+    So in fact <code>"..."</code> is never seen:
+  </p>
+  <a name="standard" />
+  <table border="1" cellpadding="4" cellspacing="0" width="100%">
+    <tr valign="top">
+      <td width="50%" class="GUI">
+        GUI
+      </td>
+      <td width="50%" class="notGUI">
+        BeanImpl
+      </td>
+    </tr>
+    <tr valign="top">
+      <td>
+<pre>
+public void actionPerformed(ActionEvent e)
+{<span class="EDT">
+  label.setText("...");
+  label.setText(bean.getValue());
+</span>}
+
+
+
+
+public void propertyChange(PropertyChangeEvent ev)
+{<span class="notEDT">
+  label.setText((String)ev.getNewValue());
+</span>}
+</pre>
+      </td>
+      <td>
+<pre>
+public String getValue()
+{<span class="EDT">
+  String value;
+  
+  // extensive calculation
+
+  return value;
+</span>}
+
+public void setValue(String value)
+{<span class="notEDT">
+  this.value = value;
+  firePropertyChange(value);
+</span>}
+</pre>
+      </td>
+    </tr>
+  </table>
+  <p>
+    The lower half of the table shows what happens if <code>setValue()</code> is
+    invoked on the bean on another thread. The listeners are notified (GUI
+    implements <code>java.beans.PropertyChangeListener</code> and is registered as
+    a listener for changes of the bean), triggering a call to
+    <code>propertyChange()</code> on the GUI. The text of the label is altered
+    on the calling thread, violating the Swing threading rule.
+  </p>
+  <p>
+    The color distribution gives a hint where to search for problems of this
+    implementation:<br>
+    <span class="EDT">Green</span> rows of code in the right column result in a
+    GUI freeze, <span class="notEDT">red</span> rows in left column show a
+    violation to the Swing threading rule.
+  </p>
+
+  <h2>
+    Working Thread.
+  </h2>
+  <p>
+    One obvious solution to the problems seen in the previous section is to shift
+    the invocation of <code>getValue()</code> from the EDT to a separate thread.
+    When this method returns we must not propagate the result to a Swing component
+    though. We have to return control to the EDT instead. This can be achieved via
+    <code>SwingUtilities.invokeLater()</code> which will use our Runnable to
+    correctly change the label's text on the EDT:
+  </p>
+
+  <table border="1" cellpadding="4" cellspacing="0" width="100%">
+    <tr valign="top">
+      <td width="50%" class="GUI">
+        GUI
+      </td>
+      <td width="50%" class="notGUI">
+        BeanImpl
+      </td>
+    </tr>
+    <tr valign="top">
+      <td>
+<pre>
+public void actionPerformed(ActionEvent e)
+{<span class="EDT">
+  label.setText("...");
+  new Thread(new Runnable()</span>
+  {
+    public void run()
+    {<span class="notEDT">
+      final String value = bean.getValue();
+      SwingUtilities.invokeLater(new Runnable()</span>
+      {
+        public void run()
+        {
+          <span class="EDT">label.setText(value);</span>          
+        }
+      }<span class="notEDT">);</span>
+    }
+  }<span class="EDT">).start();</span>
+}
+
+public void propertyChange(final PropertyChangeEvent ev)
+{
+  <span class="notEDT">SwingUtilities.invokeAndWait(new Runnable()</span>
+  {
+    public void run()
+    {
+      <span class="EDT">label.setText((String)ev.getNewValue());</span>        
+    }
+  }<span class="notEDT">);</span>
+}
+</pre>
+      </td>
+      <td>
+<pre>
+public String getValue()
+{<span class="notEDT">
+  String value;
+  
+  // extensive calculation
+  
+  return value;
+</span>}
+
+
+
+
+
+
+
+
+
+
+
+public void setValue(String value)
+{<span class="notEDT">
+  this.value = value;
+  firePropertyChange(value);
+</span>}
+</pre>
+      </td>
+    </tr>
+  </table>
+  <p>
+    Now what happens if the bean informs the GUI about a value-change triggered
+    by another thread? In <code>propertyChange()</code> we pass a runnable to the
+    EDT via <code>SwingUtiltites.invokeAndWait()</code> that can safely alter the
+    label.
+  </p>
+  <p>
+    Let's take a look at the colors once again:
+    On the right there is only <span class="notEDT">red</span> - so we achieved a 
+    non freezing GUI.
+    The left column is <span class="EDT">almost totally green</span>. Since we 
+    restrict changes to Swing components to these <span class="EDT">green</span>
+    rows we are honouring the Swing threading rule too.<br>
+    But the <span class="notEDT">red</span> rows on the left make things
+    difficult:
+    The programmer of the GUI always has to know which thread is stepping through
+    what part of the code - without any visual help of thread-coloring.
+    Any mistake reintroduces the problems mentioned above.
+  </p>
+
+  <h2>
+    SwingWorker.
+  </h2>
+  <p>
+    SwingWorker is a utility class that aims to ease the efforts to write a
+    non-freezing GUI. Although not included in the standard Java distribution it is
+    maintained by the Swing team and downloadable at
+    <a href="http://www.theswingconnection.com">The Swing Connection</a>.
+  </p>
+  <p>
+    As you can see in the following table a SwingWorker removes some of the visual
+    clutter seen in the previous section. To use it you have to subclass it,
+    placing extensive calculations into method <code>construct()</code>.
+    In <code>finished()</code> you can alter the label because this method is called
+    on the EDT. This is similar to our previous solution but this time the threading
+    is handled by the superclass:
+  </p>
+  <table border="1" cellpadding="4" cellspacing="0" width="100%">
+    <tr valign="top">
+      <td width="50%" class="GUI">
+        GUI
+      </td>
+      <td width="50%" class="notGUI">
+        BeanImpl
+      </td>
+    </tr>
+    <tr valign="top">
+      <td>
+<pre>
+public void actionPerformed(ActionEvent e)
+{<span class="EDT">
+  label.setText("...");
+  new SwingWorker()</span>
+  {
+    public Object construct()
+    {
+      <span class="notEDT">return bean.getValue();</span>
+    }
+
+    public void finished()
+    {
+      <span class="EDT">label.setText((String)getValue());</span>
+    }
+  }<span class="EDT">).start();</span>
+}
+
+
+public void propertyChange(final PropertyChangeEvent ev)
+{
+  <span class="notEDT">SwingUtilities.invokeAndWait(new Runnable()</span>
+  {
+    public void run()
+    {
+      <span class="EDT">label.setText((String)ev.getNewValue());</span>        
+    }
+  }<span class="notEDT">);</span>
+}
+</pre>
+      </td>
+      <td>
+<pre>
+public String getValue()
+{<span class="notEDT">
+  String value;
+  
+  // extensive calculation
+  
+  return value;
+</span>}
+
+
+
+
+
+
+
+
+
+
+public void setValue(String value)
+{<span class="notEDT">
+  this.value = value;
+  firePropertyChange(value);
+</span>}
+</pre>
+      </td>
+    </tr>
+  </table>
+  <p>
+    The SwingWorker offers no support for our notification problem so we stick to
+    our previous solution in <code>propertyChange()</code>.
+  </p>
+  <p>
+    What about the colors?<br>
+    The situation hasn't really improved. The indentation of code was minimized but
+    the <span class="notEDT">red</span> and <span class="EDT">green</span> colors
+    in the GUI stay the same. So the problem above isn't resolved yet.
+  </p>
+
+  <h2>
+    Spin.
+  </h2>
+  <p>
+    Now let's take a look at the <em>Spin</em> solution. The following table shows
+    the code:
+  </p>
+  <table border="1" cellpadding="4" cellspacing="0" width="100%">
+    <tr valign="top">
+      <td width="50%" class="GUI">
+        GUI
+      </td>
+      <td rowspan="2" valign="center" class="SPIN">
+        Spin
+      </td>
+      <td width="50%" class="notGUI">
+        BeanImpl
+      </td>
+    </tr>
+    <tr valign="top">
+      <td>
+<pre>
+public void actionPerformed(ActionEvent e)
+{<span class="EDT">
+  label.setText("...");
+  label.setText(bean.getValue());
+</span>}
+
+
+
+
+public void propertyChange(PropertyChangeEvent ev)
+{
+  <span class="EDT">label.setText((String)ev.getNewValue());</span>
+}
+</pre>
+      </td>
+      <td>
+<pre>
+public String getValue()
+{<span class="notEDT">
+  String value;
+
+  // extensive calculation
+  
+  return value;
+</span>}
+
+public void setValue(String value)
+{<span class="notEDT">
+  this.value = value;
+  firePropertyChange(value);
+</span>}
+</pre>
+      </td>
+    </tr>
+  </table>
+  <p>
+    Hey wait a minute!
+    It's the same code as shown in the <a href="#standard">first table</a>.
+    But the colors have changed - the GUI is completely
+    <span class="EDT">green</span> and the bean is <span class="red">red</span> -
+    how can this be?
+  </p>
+  <p>
+    <em>Spin</em> makes this solution possible - as you can see with no impact on
+    the old code. The <span class="SPIN">yellow</span> column in the middle handles
+    all threading issues transparently.<br>
+    All we have to do is to <em>spin-off</em> the bean from the EDT. For this we
+    wrap the bean in an instance of type <code>Spin</code>.
+    The result can safely be casted to any interface the bean (or one of its
+    superclasses) implements. The best place to do this is before a reference to
+    this bean is passed to a GUI component (why bother the programmer of the GUI
+    with this little detail):
+    <pre>
+      bean = (Bean)Spin.off(bean);
+    </pre>
+    
+    The only restriction here is that the Bean has to be broken into interface and
+    implementation. The GUI components will only use the interface!
+    The following picture shows how <em>Spin</em> connects the GUI and the bean.
+    Calls on the EDT from the GUI to the bean are brokered to other threads
+    invocating the beans functionality:
+  </p>
+  <p align="center">  
+    <img src="spinoff.gif" />
+  </p>
+  <p>
+    (The need for an interface isn't really a restriction.
+    It is generally recommended to separate an application in different layers
+    which communicate through well defined interfaces.
+    The GUI of an application is certainly part of another layer than extensive
+    calculations or I/O operations.)
+  </p>
+  <p>
+    For the notification of changes to the bean we use an inverse technique.
+
+    We must <em>spin-over</em> any invocation of a GUI callback-method on another
+    thread to the EDT. This time we wrap the GUI in a <codeSpin</code> instance
+    assuming that the bean allows for an <code>PropertyChangeListener</code> to
+    be added as a callback (this could be any interface like
+    foo.DataChangedListener):
+
+    <pre>
+      bean.addPropertyChangeListener((PropertyChangeListener)Spin.over(gui);
+    </pre>
+  </p>
+  <p align="center">  
+    <img src="spinover.gif" />
+  </p>
+  <p>
+    This is all you have to know to get <em>Spin</em> to work in your project.
+    If you're interested in the internals of <em>Spin</em> go on to the next
+    section.
+  </p>
+
+  <h2>
+    Internals.
+  </h2>
+  <p>
+    <em>Spin</em> is built on top of virtual proxies and a technique borrowed from
+    the java.awt.Dialog component:
+    While a modal dialog has to wait for user input, the EDT is rerouted to the
+    swing event processing to handle further events.<br>
+    The following diagram shows how this is used in <em>Spin</em>. Each invocation
+    of a beans method is intercepted and handled by an instance of the inner class
+    <code>Invocation</code>. The call to getValue() is executed asynchronously on
+    another (possibly pooled) thread while the method pumpEvents() is executed on
+    the EDT.
+    Once the call to the bean returns the dispatching of events is stopped and the
+    EDT is free to return to the standard event processing: 
+  </p>
+  <p align="center">
+    <img src="sequencespinoff.gif" />
+  </p>
+  <p>
+    For asynchronous notifications from the bean to the GUI we reuse the technique
+    introduced in the previous sections.
+    But this time the call to <code>invokeAndWait()</code> is encapsulated by
+    <em>Spin</em> with an instance of the inner class <code>Invocation</code>:
+  </p>
+  <p align="center">  
+    <img src="sequencespinover.gif" />
+  </p>
+  <p>  
+    Please take a look at the <a href="./api/index.html">API</a> for further
+    details.
+  </p>
+
+  <h2>
+    Caveats.
+  </h2>
+  <p>
+    Although <em>Spin</em> handles threading transparently there are caveats with
+    <em>spin-off</em> that you should be aware of:
+    <dl>
+      <dt>Security</dt>
+      <dd>
+        For dispatching <em>Spin</em> needs access to AWT internals that are not
+        available in applets or untrusted JavaWebStart applications due to
+        security restrictions. This will hopefully change once AWT offers an
+        official way to dispatch events.<br>
+        Meanwhile <em>Spin</em> offers an alternative solution that is less
+        performant but works also in a secured environment. Please take a look at
+        <a href="./api/spin/off/DialogDispatcherFactory.html">
+        DialogDispatcherFactory</a>.
+      </dd>
+      <dt>Reference backdoor</dt>
+      <dd>
+        If your GUI hands over references to parts of its swing models
+        (e.g. TreeModel, TableModel) in method calls to your bean, these could
+        possibly be altered on another thread than the EDT thus VIOLATING THE
+        SWING SINGLE THREADING RULE.
+      </dd>
+      <dt>Bean threadsafety</dt>
+      <dd>
+        If your GUI doesn't disable all further actions while an invocation on
+        your bean is being processed, the event dispatching may cause a second
+        concurrent call to the bean. In cases where this is desired the BEAN MUST
+        BE THREADSAFE.
+      </dd>
+      <dt>Asynchronous</dt><a name="asynchronous"/>
+      <dd>
+        Whenever your GUI calls a beans method through <em>Spin</em>, further
+        actions should be allowed only if they are related to the current
+        <em>Spin</em> invocation. This includes <code>Cancel</code> functionality
+        and the retrieval of the current state of invocation or intermediate
+        results (e.g. for updating a progress bar or incremental filling of a
+        table).<br>
+        You're running into problems if you're using <em>Spin</em> for real
+        asynchronous executions. Let me give an example:</br>
+        File tranfers of an Explorer-like application wich can be arbitrarily
+        started and stopped while others are independently continuing are NOT A
+        RECOMMENDED USAGE for <em>Spin</em>. Nevertheless <em>Spin</em> can be
+        used to <em>spin-over</em> events from the transfers (e.g. completion
+        notification) to the EDT.
+      </dd>
+    </dl>
+  </p>
+
+  <h2>
+    Conclusion.
+  </h2>
+  <p>
+    The core of <em>Spin</em> consists only of one class but it is a powerful
+    solution for non-freezing Swing applications. <em>Spin</em> enforces good
+    application design by separating the GUI and non-visual components through
+    interfaces. If it is used wisely in an application framework, the GUI
+    programmers will never have to think about threads again.
+  </p>
+  <p>  
+    <em>Spin</em> comes with several demonstration classes that show how to solve
+    formerly challenging Swing programming problems with ease:
+    <ul>
+      <li>spin.demo.SpinOffGUI - shows how to execute extensive calculations
+                                 without "freeze"</li>
+      <li>spin.demo.SpinOverGUI - demonstrates asynchronous event notification
+                                  without pain</li>
+      <li>spin.demo.exception.ExceptionGUI - proves the transparent exception
+                                             handling offered by Spin</li>
+      <li>spin.demo.pogress.PullGUI - shows how to handle visual progress while
+                                      extensive calculations are executed</li>
+      <li>spin.demo.pogress.PushGUI - uses asynchronous event notification to update
+                                      a progressbar</li>
+      <li>spin.demo.prompt.CallGUI - explains how to prompt the user between
+                                     multiple extensive calculations</li>
+      <li>spin.demo.prompt.CallbackGUI - prompts the user for input which is
+                                         triggered by callbacks from an extensive
+                                         calculation</li>
+      <li>spin.demo.async.AsyncGUI - starts asynchronous calculations transparently
+                                     through Spin</li>
+      <li>spin.demo.dispatcher.DispatcherGUI - test different dispatchers</li>
+    </ul>   
+  </p>
+  <p>  
+    We have used <em>Spin</em> succesfullly in several projects to wrap all remote
+    communication (RMI) between rich-clients and the application server.
+  </p>
+
+  <h2>
+    Acknowledgments.
+  </h2>
+  <p>
+    The <em>Spin</em> project is influenced by the
+    <a href="http://foxtrot.sourceforge.net">Foxtrot</a> project. Foxtrot is the
+    inventor of the <b>Synchronous Model</b> (<em>Spin</em> has adopted this
+    technique) but uses an API that is similar to <code>SwingWorker</code>.
+    It offers a subset of <em>Spin</em>s features - it lacks transparent exception
+    handling and offers no solution for asynchronous callbacks:
+<pre>
+public void actionPerformed(ActionEvent e)
+{<span class="EDT">
+  label.setText("...");
+  String text = (String)Worker.post(new Job()</span>
+  {
+    public Object run()
+    {
+      <span class="notEDT">return bean.getValue();</span>
+    }
+  }<span class="EDT">);
+  label.setText(text);</span>
+}
+</pre>
+  </p>
+  <p>
+    The following code shows how Foxtrot can be 'simulated' with <em>Spin</em>
+    (if you want to restrict yourself by using only one generic interface named
+    <code>Job</code> or what-ever-you-like):
+<pre>
+public void actionPerformed(ActionEvent e)
+{<span class="EDT">
+  label.setText("...");
+  String text = ((Job)Spin.off(new Job()</span>
+  {
+    public Object run()
+    {
+      <span class="notEDT">return bean.getValue();</span>
+    }
+  }<span class="EDT">)).run();
+  label.setText(text);</span>
+}
+
+</pre>
+  </p>
+</body>
+
+</html>
