@@ -30,7 +30,7 @@ package spin;
  * </pre>
  * For an example see {@link spin.off.ListenerSpinOver}.
  * 
- * @see Spin#Spin(Object, Interceptor)  
+ * @see Spin#Spin(Object, Interceptor, boolean)  
  * @see Spin#Spin(Object, Interceptor, spin.off.Starter, spin.off.DispatcherFactory)  
  * @see Spin#setDefaultOffInterceptor(Interceptor)  
  * @see Spin#setDefaultOverInterceptor(Interceptor)  

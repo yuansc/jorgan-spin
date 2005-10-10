@@ -68,15 +68,14 @@ import spin.over.OverInvocation;
  *   Spin spin = new Spin(bean, interceptor, starter, dispatcherFactory);
  *   bean = (Bean)spin.getProxy();
  * </pre>
- * Alternatively you can specify default implementations with the system properties
- * <code>spin.off.starter</code> and <code>spin.off.dispatcher.factory</code>
- * or with their corresponding static methods {@link #setDefaultOffStarter(Starter)}
- * and {@link #setDefaultOffDispatcherFactory(DispatcherFactory)}.
+ * Alternatively you can specify default implementations with their corresponding
+ * static methods {@link #setDefaultOffStarter(Starter)} and
+ * {@link #setDefaultOffDispatcherFactory(DispatcherFactory)}.
  * </p>
  * 
  * @see #off(Object)
  * @see #over(Object)
- * @see #Spin(Object, Interceptor)
+ * @see #Spin(Object, Interceptor, boolean)
  * @see #Spin(Object, Interceptor, Starter, DispatcherFactory)
  * @see spin.off.Starter
  * @see spin.off.DispatcherFactory
@@ -84,33 +83,14 @@ import spin.over.OverInvocation;
 public class Spin {
 
   /**
-   * The system property <code>spin.over.interceptor</code> that specifies
-   * the default interceptor for spin-over.
-   */
-  public static final String SPIN_OVER_INTERCEPTOR = "spin.off.interceptor";
-
-  /**
-   * The system property <code>spin.off.interceptor</code> that specifies
-   * the default interceptor for spin-off.
-   */
-  public static final String SPIN_OFF_INTERCEPTOR = "spin.off.interceptor";
-
-  /**
-   * The system property <code>spin.off.starter</code> that specifies
-   * the default starter for spin-off.
-   */
-  public static final String SPIN_OFF_STARTER = "spin.off.starter";
-
-  /**
-   * The system property <code>spin.off.dispatcher.factory<code> that specifies
-   * the default factory for dispatchers for spin-off.
-   */
-  public static final String SPIN_OFF_DISPATCHER_FACTORY = "spin.off.dispatcher.factory";
-
-  /**
    * Interceptor for spin-over used as default.
    */
   private static Interceptor defaultOverInterceptor;
+
+  /**
+   * Wait for spin-over used as default.
+   */
+  private static boolean defaultOverWait;
 
   /**
    * Interceptor for spin-off used as default.
@@ -166,20 +146,21 @@ public class Spin {
   /**
    * Create a spin-over-wrapper for the given object.
    *
-   * @param  spinOverObject           the object to spin over
-   * @param  interceptor              interceptor to intercept invocations
+   * @param  spinOverObject      the object to spin over
+   * @param  interceptor         interceptor to intercept invocations
+   * @param  wait                should invocation wait for spin-over to be complete 
    * @throws IllegalArgumentException if any argument is <code>null</code>
    * 
    * @see #over(Object)
    */
-  public Spin(Object spinOverObject, Interceptor interceptor) {
+  public Spin(Object spinOverObject, Interceptor interceptor, boolean wait) {
     if (spinOverObject == null) {
       throw new IllegalArgumentException("object to spin-over must not be null");
     }
     
     this.object = spinOverObject;
 
-    invocationHandler = new OverHandler(interceptor); 
+    invocationHandler = new OverHandler(interceptor, wait); 
   }
 
   /**
@@ -226,7 +207,7 @@ public class Spin {
    * @see             #setDefaultOverInterceptor(Interceptor)
    */
   public static Object over(Object object) {
-    return new Spin(object, defaultOverInterceptor).getProxy();
+    return new Spin(object, defaultOverInterceptor, defaultOverWait).getProxy();
   }
 
   /**
@@ -253,6 +234,15 @@ public class Spin {
       throw new IllegalArgumentException("interceptor must not be null");
     }
     defaultOverInterceptor = interceptor;
+  }
+  
+  /**
+   * Set the default wait for spin-over.
+   * 
+   * @param wait    wait to use as default
+   */
+  public static void setDefaultOverWait(boolean wait) {
+      defaultOverWait = wait;
   }
 
   /**
@@ -345,34 +335,21 @@ public class Spin {
   }
 
   /**
-   * Utility method to get an instance of a class.
-   * 
-   * @param property    system property holding the name of the class to instantiate
-   * @param clazz       class to instantiate if system property is not set
-   * @return            created instance
-   */
-  private static Object instance(String property, Class clazz) throws Exception {
-    String className = System.getProperty(property);
-    if (className != null) {
-      clazz = Class.forName(className);
-    }
-    return clazz.newInstance();
-  }
-  
-  /**
    * Initialize reflection and defaults for spin-off.
    */
   static {
     try {
       equalsMethod = Object.class.getDeclaredMethod("equals", new Class[]{Object.class});
-
-      defaultOverInterceptor      = (Interceptor)      instance(SPIN_OVER_INTERCEPTOR      , Interceptor.class);
-      defaultOffInterceptor       = (Interceptor)      instance(SPIN_OFF_INTERCEPTOR       , Interceptor.class);
-      defaultOffStarter           = (Starter)          instance(SPIN_OFF_STARTER           , SimpleStarter.class);
-      defaultOffDispatcherFactory = (DispatcherFactory)instance(SPIN_OFF_DISPATCHER_FACTORY, AWTReflectDispatcherFactory.class);
     } catch (Exception ex) {
-      throw new Error("unable to initialize Spin, check your system properties", ex);
+      throw new Error(ex);
     }
+
+    defaultOverInterceptor      = new Interceptor();
+    defaultOverWait             = true;
+      
+    defaultOffInterceptor       = new Interceptor();
+    defaultOffStarter           = new SimpleStarter();
+    defaultOffDispatcherFactory = new AWTReflectDispatcherFactory();
   }
 
   /**
@@ -497,13 +474,18 @@ public class Spin {
    */
   private class OverHandler extends AbstractInvocationHandler {
 
+    private boolean wait;
+    
     /**
      * Create a new handler for spin-over.
      * 
      * @param interceptor       interceptor
+     * @param  wait             should invocation wait for spin-over to be complete 
      */
-    public OverHandler(Interceptor interceptor) {
+    public OverHandler(Interceptor interceptor, boolean wait) {
       super(interceptor);
+      
+      this.wait = wait;
     }
   
     /**
@@ -512,7 +494,7 @@ public class Spin {
      * @return  new <code>Invocation</code>
      */
     protected Invocation createInvocation() {
-      return new OverInvocation();
+      return new OverInvocation(wait);
     }
   } 
 }

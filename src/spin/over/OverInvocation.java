@@ -27,6 +27,12 @@ import spin.Invocation;
  */
 public class OverInvocation extends Invocation {
 
+  private boolean wait;
+  
+  public OverInvocation(boolean wait) {
+      this.wait = wait;
+  }
+  
   /**
    * Spin-over this invocation to the EDT (if not already on the EDT).
    */
@@ -35,11 +41,17 @@ public class OverInvocation extends Invocation {
     if (SwingUtilities.isEventDispatchThread()) {
       evaluate();
     } else {
-      SwingUtilities.invokeAndWait(new Runnable() {
+      Runnable runnable = new Runnable() {
         public void run() {
           evaluate();
         }
-      });
+      };
+      
+      if (wait) {
+          SwingUtilities.invokeAndWait(runnable);
+      } else {
+          SwingUtilities.invokeLater(runnable);          
+      }
     }
   }
 }
