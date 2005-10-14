@@ -22,119 +22,194 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Abstract base class for handling of one single method invocation
- * on a <em>Spin</em> proxy.
+ * A single invocation on a <em>Spin</em> proxy handled by a {@link Spinner}.
  */
-public abstract class Invocation {
+public class Invocation {
 
-  private Object    object;
-  private Method    method;
-  private Object[]  args;
-  private boolean   evaluated;
-  private Throwable throwable;
-  private Object    result;
-
-  /**
-   * Set the object to invoke method on.
-   * 
-   * @param object    object to invoke method on
-   */
-  public void setObject(Object object) {
-    this.object = object;
-  }
-  
-  /**
-   * Get the object which method is invoked.
-   * 
-   * @return    the object of the invoked method
-   */
-  public Object getObject() {
-    return object;
-  }
-
-  /**
-   * Set the method to invoke
-   *  
-   * @param method    method to invoke
-   */
-  public void setMethod(Method method) {
-    this.method = method;
-  }
-
-
-  /**
-   * Get the invoked method.
-   * 
-   * @return    the invoked method
-   */
-  public Method getMethod() {
-    return method;
-  }
-
-  /**
-   * Set the arguments for the invoked method
-   * 
-   * @param args   the arguments for the invoked method
-   */
-  public void setArguments(Object[] args) {
-    this.args = args;
-  }
-
-  /**
-   * Get the arguments for this invocation.
-   * 
-   * @return    the arguments for the invoked method
-   */
-  public Object[] getArguments() {
-    return args;
-  }
-
-  /**
-   * Start the invocation.
-   *
-   * @return           the result of the invocation
-   * @throws Throwable if the wrapped method throws any exception
-   */
-  public Object start() throws Throwable {
-
-    spin();
-
-    if (throwable != null) {
-      throw throwable;
+    /**
+     * The equals method of class <code>object</code>.
+     */
+    private static final Method equalsMethod;
+    static {
+        try {
+            equalsMethod = Object.class.getDeclaredMethod("equals", new Class[]{Object.class});
+        } catch (Exception ex) {
+            throw new Error(ex);
+        }
     }
-    return result;
-  }
 
-  /**
-   * Spin the evaluation of this invocation on an appropriate thread.
-   * This method has to be implemented in subclasses to call {@link #evaluate()}.
-   */
-  protected abstract void spin() throws Throwable;
+    /**
+     * The object this invocation is evaluated on.
+     */
+    private Object object;
 
-  /**
-   * Evaluate the return value (or a possibly thrown <code>Throwable</code>)
-   * by forwarding this invocation to the corresponding method of the wrapped
-   * object.
-   */
-  protected void evaluate() {
+    /**
+     * The method to invoce.
+     */
+    private Method method;
 
-    try {
-      result = method.invoke(object, args);
-    } catch (InvocationTargetException ex) {
-      this.throwable = ex.getTargetException();
-    } catch (Throwable throwable) {
-      this.throwable = throwable;
+    /**
+     * The arguments of the method to invoce.
+     */
+    private Object[] args;
+
+    /**
+     * Was this invocation evaluated.
+     */
+    private boolean evaluated;
+
+    /**
+     * An optional throwable catched in evaluation of this invocation.
+     */
+    private Throwable throwable;
+
+    /**
+     * The result of this invocation.
+     */
+    private Object result;
+
+    /**
+     * Set the object this invocation is evaluated on.
+     * 
+     * @param object  object to evaluate on
+     */
+    public void setObject(Object object) {
+        this.object = object;
     }
-    
-    evaluated = true;
-  }
-  
-  /**
-   * Test if this invocation is already evaluated.
-   * 
-   * @return <code>true</code> if evaluation has finished
-   */
-  public boolean isEvaluated() {
-    return evaluated;
-  }
+
+    /**
+     * Get the object this invocation is evaluated on.
+     * 
+     * @return the object this invocation is evaluated on
+     */
+    public Object getObject() {
+        return object;
+    }
+
+    /**
+     * Set the method to invoke.
+     * 
+     * @param method
+     *            method to invoke
+     */
+    public void setMethod(Method method) {
+        this.method = method;
+    }
+
+    /**
+     * Get the invoked method.
+     * 
+     * @return the invoked method
+     */
+    public Method getMethod() {
+        return method;
+    }
+
+    /**
+     * Set the arguments for the invoked method.
+     * 
+     * @param args
+     *            the arguments for the invoked method
+     */
+    public void setArguments(Object[] args) {
+        this.args = args;
+    }
+
+    /**
+     * Get the arguments for the invoked method.
+     * 
+     * @return the arguments for the invoked method
+     */
+    public Object[] getArguments() {
+        return args;
+    }
+
+    /**
+     * Get the result of evaluation
+     * 
+     * @return  the result
+     */
+    public Object getResult() {
+        return result;
+    }
+
+    /**
+     * Set the result of evaluation
+     * 
+     * @param result    the result
+     */
+    public void setResult(Object result) {
+        this.result = result;
+    }
+
+    /**
+     * Get the throwable thrown on evaluation.
+     * 
+     * @return  the throwable
+     */
+    public Throwable getThrowable() {
+        return throwable;
+    }
+
+    /**
+     * Set the throwable thrown on evaluation.
+     * 
+     * @param throwable the throwable
+     */
+    public void setThrowable(Throwable throwable) {
+        this.throwable = throwable;
+    }
+
+    /**
+     * Evaluate the return value (or a possibly thrown <code>Throwable</code>)
+     * by invoking to method with the arguments on the wrapped object.
+     */
+    public void evaluate() {
+        if (evaluated) {
+            throw new IllegalStateException("already evaluated");
+        }
+
+        try {
+            result = method.invoke(object, args);
+        } catch (InvocationTargetException ex) {
+            this.throwable = ex.getTargetException();
+        } catch (Throwable throwable) {
+            this.throwable = throwable;
+        }
+
+        evaluated = true;
+    }
+
+    /**
+     * Test if this invocation is already evaluated.
+     * 
+     * @return <code>true</code> if evaluation has finished
+     */
+    public boolean isEvaluated() {
+        return evaluated;
+    }
+
+    /**
+     * Get the result or throw the throwable.
+     * 
+     * @return result
+     * @throws Throwable
+     */
+    public Object resultOrThrow() throws Throwable {
+        if (throwable != null) {
+            throw throwable;
+        } else {
+            return result;
+        }
+    }
+
+    /**
+     * Test if the given method is {@link Object#equals(Object)}.
+     * 
+     * @param method    method to test
+     * @return          true if method is the equal method
+     */
+    public static boolean isEqualsMethod(Method method) {
+        return equalsMethod.equals(method);
+    }
 }

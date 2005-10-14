@@ -40,8 +40,10 @@ import spin.Spin;
 import spin.demo.Bean;
 import spin.demo.BeanImpl;
 import spin.off.AWTReflectDispatcherFactory;
+import spin.off.Dispatcher;
 import spin.off.DispatcherFactory;
 import spin.off.InternalOptionPaneDispatcherFactory;
+import spin.off.OffSpinner;
 
 /**
  * A demonstration of a GUI using different dispatchers.
@@ -52,26 +54,21 @@ public class DispatcherGUI extends JPanel {
   private JButton button = new JButton("Get");
   
   private JPanel    dispatcherFactoryPanel   = new JPanel();
-  private ButtonGroup dispatcherFactoryGroup = new ButtonGroup(); 
+  private ButtonGroup dispatcherFactoryGroup = new ButtonGroup();
+  
+  private SwitchableDispatcherFactory dispatcherFactory = new SwitchableDispatcherFactory();
 
   private Bean bean;
-  private Bean spinOffBean;
   
-  private static Map dispatcherFactories = new HashMap();
-  static {
-    dispatcherFactories.put("AWT Reflection"     , new AWTReflectDispatcherFactory());
-    dispatcherFactories.put("Concealed Dialog"   , new ConcealedDialogDispatcherFactory());
-    dispatcherFactories.put("Revealed Dialog"    , new RevealedDialogDispatcherFactory());      
-    dispatcherFactories.put("Internal OptionPane", new InternalOptionPaneDispatcherFactory());      
-  }
-
   /**
    * Constructor.
    *
    * @param bean      the bean for this demonstration
    */
   public DispatcherGUI(Bean aBean) {
-    bean = aBean;    
+    Spin spin = new Spin(aBean, new OffSpinner(dispatcherFactory));
+        
+    bean = (Bean)spin.getProxy();
 
     setLayout(new BorderLayout());
 
@@ -85,7 +82,7 @@ public class DispatcherGUI extends JPanel {
         label.setText("...");
         button.setEnabled(false);
 
-        String value = spinOffBean.getValue();
+        String value = bean.getValue();
 
         label.setText(value);
         button.setEnabled(true);
@@ -97,16 +94,15 @@ public class DispatcherGUI extends JPanel {
     add(dispatcherFactoryPanel, BorderLayout.NORTH);
 
     // create a radioButton for each available dispatcher factory
-    Iterator iterator = dispatcherFactories.keySet().iterator();
+    Iterator iterator = dispatcherFactory.names();
     while (iterator.hasNext()) {
-      final String            name    = (String)iterator.next();
-      final DispatcherFactory factory = (DispatcherFactory)dispatcherFactories.get(name); 
+      final String name = (String)iterator.next();
 
       JRadioButton button = new JRadioButton(name);
       button.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent e) {
-          changeDispatcherFactory(factory);
-        }
+          public void itemStateChanged(ItemEvent e) {
+              dispatcherFactory.setCurrent(name);
+          }
       });
       dispatcherFactoryGroup.add(button);
       dispatcherFactoryPanel.add(button);
@@ -114,11 +110,32 @@ public class DispatcherGUI extends JPanel {
     }
   }
 
-  private void changeDispatcherFactory(DispatcherFactory factory) {
-    spinOffBean = (Bean)new Spin(bean,
-                                 Spin.getDefaultOffInterceptor(),
-                                 Spin.getDefaultOffStarter(),
-                                 factory).getProxy();
+  private class SwitchableDispatcherFactory implements DispatcherFactory {
+            
+    private Map factories = new HashMap();
+    
+    {
+      factories.put("AWT Reflection"     , new AWTReflectDispatcherFactory());
+      factories.put("Concealed Dialog"   , new ConcealedDialogDispatcherFactory());
+      factories.put("Revealed Dialog"    , new RevealedDialogDispatcherFactory());      
+      factories.put("Internal OptionPane", new InternalOptionPaneDispatcherFactory());      
+    }
+
+    private String current;
+    
+    public Iterator names() {
+        return factories.keySet().iterator();
+    }
+    
+    public void setCurrent(String name) {
+        this.current = name;
+    }
+    
+    public Dispatcher createDispatcher() {
+      DispatcherFactory dispatcherFactory = (DispatcherFactory)factories.get(current);
+              
+      return dispatcherFactory.createDispatcher();
+    }
   }
   
   /**

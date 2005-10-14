@@ -18,483 +18,191 @@
  */
 package spin;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
-import spin.off.AWTReflectDispatcherFactory;
-import spin.off.DispatcherFactory;
-import spin.off.OffInvocation;
-import spin.off.SimpleStarter;
+import spin.off.OffSpinner;
 import spin.off.Starter;
-import spin.over.OverInvocation;
+import spin.over.OverSpinner;
 
 /**
  * <p>
- * <em>Spin</em> offers a transparent threading solution for non-freezing Swing
- * applications.
+ * <em>Spin</em> offers a transparent threading solution for non-freezing
+ * Swing applications.
  * </p>
  * <p>
- * Let <code>bean</code> be a reference to a non-visual (possibly multithreaded)
- * bean implementing the interface <code>Bean</code> whose methods have to be
- * called by a Swing component. You can avoid any freezing by using one line of
- * code:
+ * Let <code>bean</code> be a reference to a non-visual (possibly
+ * multithreaded) bean implementing the interface <code>Bean</code> whose
+ * methods have to be called by a Swing component. You can avoid any freezing by
+ * using one line of code:
+ * 
  * <pre>
- *   bean = (Bean)Spin.off(bean); 
+ * bean = (Bean) Spin.off(bean);
  * </pre>
+ * 
  * Now each method call on <code>bean</code> is executed on a separate thread,
  * while the EDT is continuing to dispatch events. All return values or
  * exceptions are handled by <em>Spin</em> and transparently returned to the
- * calling method. 
+ * calling method.
  * </p>
  * <p>
  * For calls from other threads than the EDT to your Swing component you can use
  * the following (being <ode>XYListener</code> any interface your component
- * implements):  
+ * implements):
+ * 
  * <pre>
- *   bean.addXYListener((XYListener)Spin.over(component); 
+ *     bean.addXYListener((XYListener)Spin.over(component); 
  * </pre>
+ * 
  * Now all required updates to your component (and/or its model) are
  * transparently excuted on the EDT.
- * </p>
- * <p>
- * For spin-off <em>Spin</em> uses implementations of two supporting interfaces
- * {@link spin.off.Starter} and {@link spin.off.DispatcherFactory}. These can be
- * specified on explicit construction of a <code>Spin</code> instance:
- * <pre>
- *   Spin spin = new Spin(bean, interceptor, starter, dispatcherFactory);
- *   bean = (Bean)spin.getProxy();
- * </pre>
- * Alternatively you can specify default implementations with their corresponding
- * static methods {@link #setDefaultOffStarter(Starter)} and
- * {@link #setDefaultOffDispatcherFactory(DispatcherFactory)}.
  * </p>
  * 
  * @see #off(Object)
  * @see #over(Object)
- * @see #Spin(Object, Interceptor, boolean)
- * @see #Spin(Object, Interceptor, Starter, DispatcherFactory)
- * @see spin.off.Starter
- * @see spin.off.DispatcherFactory
  */
 public class Spin {
 
-  /**
-   * Interceptor for spin-over used as default.
-   */
-  private static Interceptor defaultOverInterceptor;
+    private static ProxyFactory defaultProxyFactory = new JDKProxyFactory();
 
-  /**
-   * Wait for spin-over used as default.
-   */
-  private static boolean defaultOverWait;
+    private static Spinner defaultOffSpinner = new OffSpinner();
 
-  /**
-   * Interceptor for spin-off used as default.
-   */
-  private static Interceptor defaultOffInterceptor;
+    private static Spinner defaultOverSpinner = new OverSpinner();
 
-  /**
-   * The equals method of class <code>object</code>.
-   */
-  private static final Method equalsMethod;
-
-  /**
-   * Starter for spin-off used as default.
-   */
-  private static Starter defaultOffStarter;
-
-  /**
-   * DispatcherFactory for spin-off used as default.
-   */
-  private static DispatcherFactory defaultOffDispatcherFactory;
-  
-  /**
-   * The wrapped object.
-   */
-  private Object object;
-  
-  /**
-   * The handler of invocations of methods on the <em>Spin</em>-proxy.
-   */
-  private AbstractInvocationHandler invocationHandler;
-
-  /**
-   * Create a spin-off-wrapper for the given object.
-   *
-   * @param  spinOffObject            the object to spin-off
-   * @param  interceptor              interceptor to intercept invocations
-   * @param  starter                  starter to use
-   * @param  dispatcherFactory        factory for dispatchers to use
-   * @throws IllegalArgumentException if any argument is <code>null</code>
-   * 
-   * @see #off(Object)
-   */
-  public Spin(Object spinOffObject, Interceptor interceptor,
-              Starter starter, DispatcherFactory dispatcherFactory) {
-    if (spinOffObject == null) {
-      throw new IllegalArgumentException("object to spin-off must not be null");
-    }
-    this.object = spinOffObject;
-    
-    invocationHandler = new OffHandler(interceptor, starter, dispatcherFactory); 
-  }
-
-  /**
-   * Create a spin-over-wrapper for the given object.
-   *
-   * @param  spinOverObject      the object to spin over
-   * @param  interceptor         interceptor to intercept invocations
-   * @param  wait                should invocation wait for spin-over to be complete 
-   * @throws IllegalArgumentException if any argument is <code>null</code>
-   * 
-   * @see #over(Object)
-   */
-  public Spin(Object spinOverObject, Interceptor interceptor, boolean wait) {
-    if (spinOverObject == null) {
-      throw new IllegalArgumentException("object to spin-over must not be null");
-    }
-    
-    this.object = spinOverObject;
-
-    invocationHandler = new OverHandler(interceptor, wait); 
-  }
-
-  /**
-   * Get a proxy for the wrapped object.
-   * <br>
-   * The returned object can safely be casted to any interface the wrapped
-   * object implements.
-   *
-   * @return   the new proxy
-   */
-  public Object getProxy() {
-    Class clazz = object.getClass();
-
-    return Proxy.newProxyInstance(clazz.getClassLoader(),
-                                  interfaces(clazz),
-                                  invocationHandler);
-  }
-
-  /**
-   * Convenience method to spin-off the given object from swing.
-   * <br>
-   * The returned object can safely be casted to any interface
-   * the given object implements.
-   *
-   * @param object    the object to spin-off
-   * @return          proxy for the given object
-   * @see             #setDefaultOffInterceptor(Interceptor)
-   * @see             #setDefaultOffStarter(Starter)
-   * @see             #setDefaultOffDispatcherFactory(DispatcherFactory)
-   */
-  public static Object off(Object object) {
-    return new Spin(object, defaultOffInterceptor,
-                    defaultOffStarter, defaultOffDispatcherFactory).getProxy();
-  }
-
-  /**
-   * Convenience method to spin-over the given object with swing.
-   * <br>
-   * The returned object can safely be casted to any interface
-   * the given object implements.
-   *
-   * @param object    the object to spin-over
-   * @return          proxy for the given object
-   * @see             #setDefaultOverInterceptor(Interceptor)
-   */
-  public static Object over(Object object) {
-    return new Spin(object, defaultOverInterceptor, defaultOverWait).getProxy();
-  }
-
-  /**
-   * Test if the given object is a <em>Spin</em> proxy.
-   * 
-   * @param object    object to test
-   * @return          <code>true</code> if given object is a <em>Spin</em> proxy,
-   *                  <code>false</code> otherwise
-   */
-  public static boolean isSpinProxy(Object object) {
-    
-    return (object != null) &&
-           Proxy.isProxyClass(object.getClass()) &&
-           (Proxy.getInvocationHandler(object) instanceof AbstractInvocationHandler); 
-  }
-
-  /**
-   * Set the default interceptor to be used for spin-over.
-   * 
-   * @param interceptor interceptor to use as default
-   */
-  public static void setDefaultOverInterceptor(Interceptor interceptor) {
-    if (interceptor == null) {
-      throw new IllegalArgumentException("interceptor must not be null");
-    }
-    defaultOverInterceptor = interceptor;
-  }
-  
-  /**
-   * Set the default wait for spin-over.
-   * 
-   * @param wait    wait to use as default
-   */
-  public static void setDefaultOverWait(boolean wait) {
-      defaultOverWait = wait;
-  }
-
-  /**
-   * Get the default interceptor for spin-over.
-   * 
-   * @return  interceptor used as default
-   */
-  public static Interceptor getDefaultOverInterceptor() {
-    return defaultOverInterceptor;
-  }
-
-  /**
-   * Set the default interceptor to be used for spin-off.
-   * 
-   * @param interceptor interceptor to use as default
-   */
-  public static void setDefaultOffInterceptor(Interceptor interceptor) {
-    if (interceptor == null) {
-      throw new IllegalArgumentException("interceptor must not be null");
-    }
-    defaultOffInterceptor = interceptor;
-  }
-
-  /**
-   * Get the default interceptor for spin-off.
-   * 
-   * @return  interceptor used as default
-   */
-  public static Interceptor getDefaultOffInterceptor() {
-    return defaultOffInterceptor;
-  }
-
-  /**
-   * Set the default starter to be used for spin-off.
-   * 
-   * @param starter   starter to use as default
-   */
-  public static void setDefaultOffStarter(Starter starter) {
-    if (starter == null) {
-      throw new IllegalArgumentException("starter must not be null");
-    }
-    defaultOffStarter = starter;
-  }
-
-  /**
-   * Get the default starter for spin-off.
-   * 
-   * @return  starter used as default
-   */
-  public static Starter getDefaultOffStarter() {
-    return defaultOffStarter;
-  }
-
-  /**
-   * Set the default factory for dispacthers to be used for spin-off.
-   * 
-   * @param dispatcherFactory    factory for dispatchers to use as default
-   */
-  public static void setDefaultOffDispatcherFactory(DispatcherFactory dispatcherFactory) {
-    if (dispatcherFactory == null) {
-      throw new IllegalArgumentException("dispatcherFactory must not be null");
-    }
-    defaultOffDispatcherFactory = dispatcherFactory;
-  }
-
-  /**
-   * Get the default factory for dispatchers for spin-off.
-   * 
-   * @return  dispatcherFactory used as default
-   */
-  public static DispatcherFactory getDefaultOffDispatcherFactory() {
-    return defaultOffDispatcherFactory;
-  }
-
-  /**
-   * Utility method to retrieve all implemented interfaces of a class
-   * and its superclasses.
-   * 
-   * @param clazz   class to get interfaces for
-   * @return        implemented interfaces
-   */
-  private static Class[] interfaces(Class clazz) {
-    Set interfaces = new HashSet();
-    while (clazz != null) {
-      interfaces.addAll(Arrays.asList(clazz.getInterfaces()));
-      clazz = clazz.getSuperclass();
-    }
-
-    return (Class[])interfaces.toArray(new Class[interfaces.size()]);
-  }
-
-  /**
-   * Initialize reflection and defaults for spin-off.
-   */
-  static {
-    try {
-      equalsMethod = Object.class.getDeclaredMethod("equals", new Class[]{Object.class});
-    } catch (Exception ex) {
-      throw new Error(ex);
-    }
-
-    defaultOverInterceptor      = new Interceptor();
-    defaultOverWait             = true;
-      
-    defaultOffInterceptor       = new Interceptor();
-    defaultOffStarter           = new SimpleStarter();
-    defaultOffDispatcherFactory = new AWTReflectDispatcherFactory();
-  }
-
-  /**
-   * Abstract base class for handlers of invocations on the <em>Spin</em> proxy.
-   */
-  private abstract class AbstractInvocationHandler implements InvocationHandler {
+    private Object proxy;
 
     /**
-     * The interceptor.
-     */
-    private Interceptor interceptor;
-
-    /**
-     * Create an handler for invocations.
+     * Create a <em>Spin</em> wrapper for the given object.
      * 
-     * @param interceptor   interceptor
+     * @param object
+     *            object to wrap
+     * @param spinner
+     *            spinner of invocations on the given object
      */
-    public AbstractInvocationHandler(Interceptor interceptor) {
-      this.interceptor = interceptor;
+    public Spin(Object object, Spinner spinner) {
+        this(object, defaultProxyFactory, spinner);
     }
-    
-    /**
-     * Handle the invocation of a method on the <em>Spin</em> proxy.
-     *
-     * @param proxy      the proxy instance
-     * @param method     the method to invoke
-     * @param args       the arguments for the method
-     * @return           the result of the invocation on the wrapped object
-     * @throws Throwable if the wrapped method throws a <code>Throwable</code>
-     */
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-  
-      if (equalsMethod.equals(method)) {
-        return new Boolean(isSpinProxy(args[0]) &&
-                           equals(Proxy.getInvocationHandler(args[0])));
-      } else {
-        Invocation invocation = createInvocation();
-        invocation.setObject(object);
-        invocation.setMethod(method);
-        invocation.setArguments(args);
-        
-        return interceptor.intercept(invocation);
-      }
-    }
-    
-    /**
-     * Create an {@link Invocation}.
-     * 
-     * @return  new <code>Invocation</code>
-     */
-    protected abstract Invocation createInvocation();
-    
-    /**
-     * Test on equality based on the wrapped object.
-     */
-    public boolean equals(Object object) {
-      if (object != null && object.getClass().equals(getClass())) {
-        AbstractInvocationHandler handler = (AbstractInvocationHandler)object;
-        return (getObject().equals(handler.getObject()));
-      }
-      return false;
-    }
-    
-    /**
-     * Get the wrapped Object.
-     */
-    private Object getObject() {
-      return Spin.this.object;
-    }
-       
-  }
-   
-  /**
-   * Spin-off handler of invocations on the <em>Spin</em> proxy.
-   */
-  private class OffHandler extends AbstractInvocationHandler {
-  
-    /**
-     * The starter to be used only for spin-off.
-     */
-    private Starter starter;
 
     /**
-     * The dispatcherFactory to be used only for spin-off.
-     */
-    private DispatcherFactory dispatcherFactory;
- 
-    /**
-     * Create a new handler for spin-off.
+     * Create a <em>Spin</em> wrapper for the given object.
      * 
-     * @param interceptor       interceptor
-     * @param starter           starter to use for starting asynchronous
-     *                          invocations 
-     * @param dispatcherFactory factory to use for dipatching of events
+     * @param object        object to wrap
+     * @param proxyFactory  factory for a proxy 
+     * @param spinner       spinner of invocations on the given object
      */
-    public OffHandler(Interceptor interceptor, Starter starter, DispatcherFactory dispatcherFactory) {
-      super(interceptor);
-      
-      if (starter == null) {
-        throw new IllegalArgumentException("executor must not be null");
-      }
-      if (dispatcherFactory == null) {
-        throw new IllegalArgumentException("dispatcherFactory must not be null");
-      }
+    public Spin(Object object, ProxyFactory proxyFactory, Spinner spinner) {
+        if (object == null) {
+            throw new IllegalArgumentException("object must not be null");
+        }
+        if (proxyFactory == null) {
+            throw new IllegalArgumentException("proxyFactory must not be null");
+        }
+        if (spinner == null) {
+            throw new IllegalArgumentException("spinner must not be null");
+        }
 
-      this.starter           = starter;
-      this.dispatcherFactory = dispatcherFactory; 
+        proxy = proxyFactory.createProxy(object, spinner);
     }
-    
-    /**
-     * Create an {@link Invocation}.
-     * 
-     * @return  new <code>Invocation</code>
-     */
-    protected Invocation createInvocation() {
-      return new OffInvocation(starter, dispatcherFactory.createDispatcher());
-    }
-  }
 
-  /**
-   * Spin-over handler of invocations on the <em>Spin</em> proxy.
-   */
-  private class OverHandler extends AbstractInvocationHandler {
+    /**
+     * Get a proxy for the wrapped object. <br>
+     * The returned object can safely be casted to any interface the wrapped
+     * object implements.
+     * 
+     * @return the new proxy
+     */
+    public Object getProxy() {
+        return proxy;
+    }
 
-    private boolean wait;
-    
     /**
-     * Create a new handler for spin-over.
+     * Convenience method to spin-off the given object from Swing. <br>
+     * The returned object can safely be casted to any interface the given
+     * object implements.
      * 
-     * @param interceptor       interceptor
-     * @param  wait             should invocation wait for spin-over to be complete 
+     * @param object
+     *            the object to spin-off
+     * @return proxy for the given object
+     * @see #setDefaultOffInterceptor(Interceptor)
+     * @see #setDefaultOffStarter(Starter)
+     * @see #setDefaultOffDispatcherFactory(DispatcherFactory)
      */
-    public OverHandler(Interceptor interceptor, boolean wait) {
-      super(interceptor);
-      
-      this.wait = wait;
+    public static Object off(Object object) {
+        return new Spin(object, defaultProxyFactory, defaultOffSpinner).getProxy();
     }
-  
+
     /**
-     * Create an {@link Invocation}.
+     * Convenience method to spin-over the given object with Swing. <br>
+     * The returned object can safely be casted to any interface the given
+     * object implements.
      * 
-     * @return  new <code>Invocation</code>
+     * @param object
+     *            the object to spin-over
+     * @return proxy for the given object
+     * @see #setDefaultOverInterceptor(Interceptor)
      */
-    protected Invocation createInvocation() {
-      return new OverInvocation(wait);
+    public static Object over(Object object) {
+        return new Spin(object, defaultProxyFactory, defaultOverSpinner)
+                .getProxy();
     }
-  } 
+
+    /**
+     * Set the default factory of proxies.
+     * 
+     * @param factory   proxy factore to use as default
+     */
+    public static void setDefaultProxyFactory(ProxyFactory factory) {
+        if (factory == null) {
+            throw new IllegalArgumentException("factory must not be null");
+        }
+        defaultProxyFactory = factory;
+    }
+
+    /**
+     * Set the default spinner for spin-off.
+     * 
+     * @param spinner   spinner to use for spin-off
+     */
+    public static void setDefaultOffSpinner(Spinner spinner) {
+        if (spinner == null) {
+            throw new IllegalArgumentException("spinner must not be null");
+        }
+        defaultOffSpinner = spinner;
+    }
+
+    /**
+     * Set the default spinner for spin-over.
+     * 
+     * @param spinner   spinner for spin-over
+     */
+    public static void setDefaultOverSpinner(Spinner spinner) {
+        if (spinner == null) {
+            throw new IllegalArgumentException("spinner must not be null");
+        }
+        defaultOverSpinner = spinner;
+    }
+
+    /**
+     * Get the default proxy factory.
+     * 
+     * @return  the default factory of proxies
+     */
+    public static ProxyFactory getDefaultProxyFactory() {
+        return defaultProxyFactory;
+    }
+
+    /**
+     * Get the default spinner for spin-off.
+     * 
+     * @return  spinner for spin-off
+     */
+    public static Spinner getDefaultOffSpinner() {
+        return defaultOffSpinner;
+    }
+
+    /**
+     * Get the default spinner for spin-over.
+     * 
+     * @return  spinner for spin-over
+     */
+    public static Spinner getDefaultOverSpinner() {
+        return defaultOverSpinner;
+    }
 }

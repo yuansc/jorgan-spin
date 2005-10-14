@@ -27,6 +27,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import spin.CGLibProxyFactory;
 import spin.Spin;
 
 /**
@@ -67,8 +68,11 @@ public class ExceptionGUI extends JPanel {
    */
   public static void main(String[] args) {
 
-    ExceptionBean exceptionBean = new ExceptionBeanImpl();
-    ExceptionGUI  exceptionGUI  = new ExceptionGUI((ExceptionBean)Spin.off(exceptionBean));
+    ExceptionBean bean = new ExceptionBean();
+    
+    Spin spin = new Spin(bean, new CGLibProxyFactory(), Spin.getDefaultOffSpinner());
+    
+    ExceptionGUI exceptionGUI = new ExceptionGUI((ExceptionBean)spin.getProxy());
 
     JFrame frame = new JFrame("Exception");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

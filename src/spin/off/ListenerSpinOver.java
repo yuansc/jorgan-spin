@@ -21,39 +21,37 @@ package spin.off;
 import java.lang.reflect.Method;
 import java.util.EventListener;
 
-import spin.Interceptor;
 import spin.Invocation;
 import spin.Spin;
+import spin.Spinner;
 
 /**
- * An <code>Interceptor</code> for spin-off that automatically spins-over all
- * arguments of an {@link spin.off.OffInvocation} if their corresponding parameter
+ * An spinner for spin-off that automatically spins-over all
+ * arguments of a {@link spin.off.OffSpinner} if their corresponding parameter
  * types are subinterfaces of <code>java.util.EventListener</code>.
  * <br>
  * Use an instance of this class on construction of a <em>Spin</em> object
  * or install it globally by calling the static method:
  * <pre>
- *   Spin.setDefaultOffInterceptor(new ListenerSpinOver());
+ *   Spin.setDefaultOffSpinner(new ListenerSpinOver());
  * </pre>
  * 
  * @see #isListenerAdditionOrRemoval(java.lang.reflect.Method)
  * @see #isListener(java.lang.Class)
  */
-public class ListenerSpinOver extends Interceptor {
+public class ListenerSpinOver extends Spinner {
 
-  /**
-   * Wrap the arguments of a listener addition or removal before starting the
-   * invocation.
-   * 
-   * @param  invocation               invocation to intercept
-   * @throws IllegalArgumentException if the invocation to intercept is not an
-   *                                  <code>OffInvocation</code>
-   */
-  public Object intercept(Invocation invocation) throws Throwable {
+  private Spinner spinner;
+  
+  public ListenerSpinOver() {
+      this(Spin.getDefaultOffSpinner());
+  }
 
-    if (!(invocation instanceof OffInvocation)) {
-        throw new IllegalArgumentException("ListenerSpinOver can only intercept spin-off");
-    }
+  public ListenerSpinOver(Spinner spinner) {
+      this.spinner = spinner;
+  }
+
+  public void spin(Invocation invocation) throws Throwable {
 
     Method method = invocation.getMethod(); 
     if (isListenerAdditionOrRemoval(method)) {
@@ -66,7 +64,7 @@ public class ListenerSpinOver extends Interceptor {
       }
     }
 
-    return invocation.start();
+    spinner.spin(invocation);
   }
 
   /**

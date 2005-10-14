@@ -16,42 +16,18 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package spin.over;
-
-import javax.swing.SwingUtilities;
-
-import spin.Invocation;
+package spin;
 
 /**
- * Invocation subclass that handles spin-over.
+ * A spinner of an invocation.
  */
-public class OverInvocation extends Invocation {
+public abstract class Spinner {
 
-  private boolean wait;
-  
-  public OverInvocation(boolean wait) {
-      this.wait = wait;
-  }
-  
-  /**
-   * Spin-over this invocation to the EDT (if not already on the EDT).
-   */
-  protected void spin() throws Throwable {
-
-    if (SwingUtilities.isEventDispatchThread()) {
-      evaluate();
-    } else {
-      Runnable runnable = new Runnable() {
-        public void run() {
-          evaluate();
-        }
-      };
-      
-      if (wait) {
-          SwingUtilities.invokeAndWait(runnable);
-      } else {
-          SwingUtilities.invokeLater(runnable);          
-      }
-    }
-  }
+    /**
+     * Spin the given invocation.
+     * 
+     * @param invocation    invocation to spin
+     * @throws Throwable
+     */
+    public abstract void spin(Invocation invocation) throws Throwable;
 }

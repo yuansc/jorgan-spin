@@ -20,7 +20,7 @@ package spin.off;
 
 /**
  * A <code>Starter</code> starts <code>Runnable</code>s asynchronously -
- * used by {@link OffInvocation}s to spin-off non UI computations from the EDT.
+ * used by {@link OffSpinner}s to spin-off non UI computations from the EDT.
  * <br>
  * An implementation of this interface could be a sophisticated thread pool
  * ore simply use:

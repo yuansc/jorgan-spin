@@ -13,6 +13,11 @@
     <target name="build" description="Build the source" >
         <mkdir dir="./classes"/>
         <javac debug="true" deprecation="true" destdir="./classes" srcdir="./src">
+        	<classpath>
+	            <fileset dir="./lib">
+    	            <include name="*" />
+	            </fileset>
+        	</classpath>
         	<classpath path="${junit.path}/junit.jar"/>
         </javac>
     </target>

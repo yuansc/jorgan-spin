@@ -16,33 +16,19 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package spin.demo.exception;
-
-import spin.demo.Assert;
+package spin;
 
 /**
- * Implementation of a prompt.
+ * A factory of proxies.
  */
-public class ExceptionBeanImpl implements ExceptionBean {
-
-  /**
-   * Possibly throw an exception.
-   */
-  public void possiblyThrowException() throws BeanException {
-    Assert.isNotEDT();      
-      
-    long time = (long)(Math.random() * 5000);
-
-    try {
-      synchronized (this) {
-        wait(time);
-      }
-    } catch (InterruptedException ex) {
-      // ignore
-    }
-
-    if (time > 2500) {
-      throw new BeanException();
-    }
-  }
+public interface ProxyFactory {
+    
+    /**
+     * Create a proxy for the given object that forwards invocations to the spinner.
+     * 
+     * @param object    object to create proxy for
+     * @param spinner   spinner to forward invocations to
+     * @return          new proxy
+     */
+    public Object createProxy(Object object, Spinner spinner);
 }

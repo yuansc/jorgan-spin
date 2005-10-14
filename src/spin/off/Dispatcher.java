@@ -21,7 +21,7 @@ package spin.off;
 /**
  * An dispatcher of AWT events.
  * <br>
- * Used by {@link OffInvocation}s to keep the UI reactive while waiting for
+ * Used by {@link OffSpinner}s to keep the UI reactive while waiting for
  * a spin-off to complete.
  */
 public interface Dispatcher {

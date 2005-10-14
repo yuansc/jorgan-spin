@@ -18,13 +18,31 @@
  */
 package spin.demo.exception;
 
+import spin.demo.Assert;
+
 /**
- * A common interface for an exception.
+ * Implementation of a exception throwing bean.
  */
-public interface ExceptionBean {
+public class ExceptionBean {
 
   /**
    * Possibly throw an exception.
    */
-  public void possiblyThrowException() throws BeanException ;
+  public void possiblyThrowException() throws BeanException {
+    Assert.isNotEDT();      
+      
+    long time = (long)(Math.random() * 5000);
+
+    try {
+      synchronized (this) {
+        wait(time);
+      }
+    } catch (InterruptedException ex) {
+      // ignore
+    }
+
+    if (time > 2500) {
+      throw new BeanException();
+    }
+  }
 }
