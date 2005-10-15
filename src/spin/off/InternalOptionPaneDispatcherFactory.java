@@ -33,8 +33,8 @@ import javax.swing.SwingUtilities;
  * A factory of <code>Dispatcher</code>s which uses modal internal
  * <code>JOptionPane</code>s to dispatch events.
  * 
- * @see spin.Spin#Spin(Object, Interceptor, Starter, DispatcherFactory)
- * @see spin.Spin#setDefaultOffDispatcherFactory(DispatcherFactory)
+ * @see spin.off.OffSpinner#OffSpinner(DispatcherFactory)
+ * @see spin.off.OffSpinner#setDefaultDispatcherFactory(DispatcherFactory)
  * @see AWTReflectDispatcherFactory
  */
 public class InternalOptionPaneDispatcherFactory implements DispatcherFactory {

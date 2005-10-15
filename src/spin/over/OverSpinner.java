@@ -24,16 +24,28 @@ import spin.Invocation;
 import spin.Spinner;
 
 /**
- * A spinner for spin-over.
+ * A spinner for spin-over, i.e. all invocations are evaluated on the EDT.
  */
 public class OverSpinner extends Spinner {
 
+    private static boolean defaultWait = true;
+    
     private boolean wait;
 
+    /**
+     * Create a spinner for spin-over using the default wait setting.
+     * 
+     * @see #setDefaultWait(boolean)
+     */
     public OverSpinner() {
-        this(true);
+        this(defaultWait);
     }
 
+    /**
+     * Create a spinner for spin-over .
+     * 
+     * @param wait  should this spinner wait for the evaluation to complete
+     */
     public OverSpinner(boolean wait) {
         this.wait = wait;
     }
@@ -64,5 +76,13 @@ public class OverSpinner extends Spinner {
                 SwingUtilities.invokeLater(runnable);
             }
         }
+    }
+
+    public static boolean getDefaultWait() {
+        return defaultWait;
+    }
+
+    public static void setDefaultWait(boolean wait) {
+        defaultWait = wait;
     }
 }

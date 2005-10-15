@@ -23,10 +23,10 @@
 
 <body>
   <h1>
-    Spin your Swing.
+    Spin your Swing
   </h1>
   <h2>
-    Abstract.
+    Abstract
   </h2>
   <p align="center">
     <cite><em>Spin</em> is a transparent threading solution for non-freezing
@@ -57,7 +57,7 @@
   </p>
 
   <h2>
-    Standard Swing.
+    Standard Swing
   </h2>
   <p>
     In this section we take a look at a naive GUI implementation that shows how
@@ -163,7 +163,7 @@ public void setValue(String value)
   </p>
 
   <h2>
-    Working Thread.
+    Working Thread
   </h2>
   <p>
     One obvious solution to the problems seen in the previous section is to shift
@@ -268,7 +268,7 @@ public void setValue(String value)
   </p>
 
   <h2>
-    SwingWorker.
+    SwingWorker
   </h2>
   <p>
     SwingWorker is a utility class that aims to ease the efforts to write a
@@ -367,7 +367,7 @@ public void setValue(String value)
   </p>
 
   <h2>
-    Spin.
+    Spin
   </h2>
   <p>
     Now let's take a look at the <em>Spin</em> solution. The following table shows
@@ -455,11 +455,20 @@ public void setValue(String value)
     <img src="spinoff.gif" alt="Spin off"/>
   </p>
   <p>
-    (The need for an interface isn't really a restriction.
-    It is generally recommended to separate an application in different layers
-    which communicate through well defined interfaces.
-    The GUI of an application is certainly part of another layer than extensive
-    calculations or I/O operations.)
+    The need for an interface isn't really a restriction:
+    <ul>
+      <li>
+        It is generally recommended to separate an application in different layers
+        which communicate through well defined interfaces.
+        The GUI of an application is certainly part of another layer than extensive
+        calculations or I/O operations.
+      </li>
+      <li>
+        If you don't want to or are unable to use an interface you can
+        <a href="#cglib">utilize CGLib instead of JDK proxies</a>.
+      </li>
+    </ul>
+
   </p>
   <p>
     For the notification of changes to the bean we use an inverse technique.
@@ -483,18 +492,21 @@ public void setValue(String value)
   </p>
 
   <h2>
-    Internals.
+    Internals
   </h2>
   <p>
     <em>Spin</em> is built on top of virtual proxies and a technique borrowed from
-    the java.awt.Dialog component:
+    the java.awt.Dialog component.
     While a modal dialog has to wait for user input, the EDT is rerouted to the
-    swing event processing to handle further events.<br/>
-    The following diagram shows how this is used in <em>Spin</em>. Each invocation
-    of a beans method is intercepted and handled by an instance of the inner class
-    <code>Invocation</code>. The call to getValue() is executed asynchronously on
-    another (possibly pooled) thread while the method pumpEvents() is executed on
-    the EDT.
+    swing event processing to handle further events.
+  </p>
+  <p>
+    The following diagram shows how this is used in <em>Spin</em>.
+    Each invocation of a bean's method is intercepted and handled by an
+    <a href="./api/spin/off/OffSpinner.html">OffSpinner</a>:</br>
+    getValue() is evaluated asynchronously on another thread (customizable with
+    a <a href="./api/spin/off/Starter.html">Starter</a>) while Swing events are
+    dispatched through a <a href="./api/spin/off/Dispatcher.html">Dispatcher</a>.
     Once the call to the bean returns the dispatching of events is stopped and the
     EDT is free to return to the standard event processing: 
   </p>
@@ -505,7 +517,7 @@ public void setValue(String value)
     For asynchronous notifications from the bean to the GUI we reuse the technique
     introduced in the previous sections.
     But this time the call to <code>invokeAndWait()</code> is encapsulated by
-    <em>Spin</em> with an instance of the inner class <code>Invocation</code>:
+    <em>Spin</em> with an <a href="./api/spin/over/OverSpinner.html">OverSpinner</a>:
   </p>
   <p align="center">  
     <img src="sequencespinover.gif" alt="Spin over sequence"/>
@@ -516,7 +528,7 @@ public void setValue(String value)
   </p>
 
   <h2>
-    Caveats.
+    Caveats
   </h2>
   <p>
     Although <em>Spin</em> handles threading transparently there are caveats with
@@ -584,11 +596,11 @@ public void setValue(String value)
   </dl>
 
   <h2>
-    Conclusion.
+    Conclusion
   </h2>
   <p>
-    The core of <em>Spin</em> consists only of one class but it is a powerful
-    solution for non-freezing Swing applications. <em>Spin</em> enforces good
+    <em>Spin</em> is a small library that concentrates on offering a powerful
+    solution to build non-freezing Swing applications. <em>Spin</em> enforces good
     application design by separating the GUI and non-visual components through
     interfaces. If it is used wisely in an application framework, the GUI
     programmers will never have to think about threads again.
@@ -623,7 +635,7 @@ public void setValue(String value)
   </p>
 
   <h2>
-    Acknowledgments.
+    Acknowledgments
   </h2>
   <p>
     The <em>Spin</em> project is influenced by the 

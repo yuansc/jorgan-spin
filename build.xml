@@ -28,6 +28,11 @@
         	<package name="spin"/>
         	<package name="spin.off"/>
         	<package name="spin.over"/>
+        	<classpath>
+	            <fileset dir="./lib">
+    	            <include name="*" />
+	            </fileset>
+        	</classpath>
         </javadoc>
     </target>
 

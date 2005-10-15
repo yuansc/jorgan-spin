@@ -24,7 +24,11 @@ import spin.Invocation;
 import spin.Spinner;
 
 /**
- * A spinner for spin-over.
+ * A spinner for spin-off, i.e. all invocations are evaluated on another thread
+ * then the EDT while further events are dispatched.
+ * 
+ * @see spin.off.Starter
+ * @see spin.off.DispatcherFactory
  */
 public class OffSpinner extends Spinner {
 
@@ -49,32 +53,37 @@ public class OffSpinner extends Spinner {
     private Starter starter;
 
     /**
-     * Create a spinner with the default dispatcherFactory and starter.
+     * Create a spinner for spin-off using the default dispatcherFactory and starter.
+     *
+     * @see #setDefaultStarter(Starter)
+     * @see #setDefaultDispatcherFactory(DispatcherFactory)
      */
     public OffSpinner() {
         this(defaultDispatcherFactory, defaultStarter);
     }
 
     /**
-     * Create a spinner with the given dispatcherFactory and the default starter.
+     * Create a spinner for spin-off using the default starter.
      * 
      * @param dispatcherFactory factory of dispatchers
+     * @see #setDefaultStarter(Starter)
      */
     public OffSpinner(DispatcherFactory dispatcherFactory) {
         this(dispatcherFactory, defaultStarter);
     }
 
     /**
-     * Create a spinner with the given starter and the default dispatcherFactory.
+     * Create a spinner for spin-off using the default dispatcherFactory.
      * 
      * @param starter   starter
+     * @see #setDefaultDispatcherFactory(DispatcherFactory)
      */
     public OffSpinner(Starter starter) {
         this(defaultDispatcherFactory, starter);
     }
 
     /**
-     * Create a spinner with the given dispatcherFactory and starter.
+     * Create a spinner for spin-off.
      *  
      * @param dispatcherFactory factory of dispatchers
      * @param starter           starter
@@ -110,5 +119,42 @@ public class OffSpinner extends Spinner {
         } else {
             invocation.evaluate();
         }
+    }
+
+    /**
+     * Get the default dispatcher factory.
+     * 
+     * @return  default factory of dispatchers 
+     */
+    public static DispatcherFactory getDefaultDispatcherFactory() {
+        return defaultDispatcherFactory;
+    }
+
+    /**
+     * Set the default dispatcher factory.
+     * 
+     * @param dispatcherFactory     the factory of dispatchers to use as default
+     */
+    public static void setDefaultDispatcherFactory(
+            DispatcherFactory dispatcherFactory) {
+        OffSpinner.defaultDispatcherFactory = dispatcherFactory;
+    }
+
+    /**
+     * Get the default starter.
+     * 
+     * @return  default starter
+     */
+    public static Starter getDefaultStarter() {
+        return defaultStarter;
+    }
+
+    /**
+     * Set the default starter.
+     * 
+     * @param starter   the starter to use as default
+     */
+    public static void setDefaultStarter(Starter starter) {
+        OffSpinner.defaultStarter = starter;
     }
 }

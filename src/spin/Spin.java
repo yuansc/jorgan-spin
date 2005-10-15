@@ -19,7 +19,6 @@
 package spin;
 
 import spin.off.OffSpinner;
-import spin.off.Starter;
 import spin.over.OverSpinner;
 
 /**
@@ -71,10 +70,8 @@ public class Spin {
     /**
      * Create a <em>Spin</em> wrapper for the given object.
      * 
-     * @param object
-     *            object to wrap
-     * @param spinner
-     *            spinner of invocations on the given object
+     * @param object    object to wrap
+     * @param spinner   spinner of invocations on the given object
      */
     public Spin(Object object, Spinner spinner) {
         this(object, defaultProxyFactory, spinner);
@@ -120,9 +117,8 @@ public class Spin {
      * @param object
      *            the object to spin-off
      * @return proxy for the given object
-     * @see #setDefaultOffInterceptor(Interceptor)
-     * @see #setDefaultOffStarter(Starter)
-     * @see #setDefaultOffDispatcherFactory(DispatcherFactory)
+     * @see #setDefaultProxyFactory(ProxyFactory)
+     * @see #setDefaultOffSpinner(Spinner)
      */
     public static Object off(Object object) {
         return new Spin(object, defaultProxyFactory, defaultOffSpinner).getProxy();
@@ -136,7 +132,8 @@ public class Spin {
      * @param object
      *            the object to spin-over
      * @return proxy for the given object
-     * @see #setDefaultOverInterceptor(Interceptor)
+     * @see #setDefaultProxyFactory(ProxyFactory)
+     * @see #setDefaultOverSpinner(Spinner)
      */
     public static Object over(Object object) {
         return new Spin(object, defaultProxyFactory, defaultOverSpinner)
