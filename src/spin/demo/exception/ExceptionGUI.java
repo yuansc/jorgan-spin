@@ -70,7 +70,7 @@ public class ExceptionGUI extends JPanel {
 
     ExceptionBean bean = new ExceptionBean();
     
-    Spin spin = new Spin(bean, new CGLibProxyFactory(), Spin.getDefaultOffSpinner());
+    Spin spin = new Spin(bean, new CGLibProxyFactory(), Spin.getDefaultOffEvaluator());
     
     ExceptionGUI exceptionGUI = new ExceptionGUI((ExceptionBean)spin.getProxy());
 

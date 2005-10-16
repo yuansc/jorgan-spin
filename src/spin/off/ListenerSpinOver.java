@@ -23,35 +23,35 @@ import java.util.EventListener;
 
 import spin.Invocation;
 import spin.Spin;
-import spin.Spinner;
+import spin.Evaluator;
 
 /**
- * An spinner for spin-off that automatically spins-over all
- * arguments of a {@link spin.off.OffSpinner} if their corresponding parameter
+ * An evaluator for spin-off that automatically spins-over all
+ * arguments of a {@link spin.off.SpinOffEvaluator} if their corresponding parameter
  * types are subinterfaces of <code>java.util.EventListener</code>.
  * <br>
  * Use an instance of this class on construction of a <em>Spin</em> object
  * or install it globally by calling the static method:
  * <pre>
- *   Spin.setDefaultOffSpinner(new ListenerSpinOver());
+ *   Spin.setDefaultOffEvaluator(new ListenerSpinOver());
  * </pre>
  * 
  * @see #isListenerAdditionOrRemoval(java.lang.reflect.Method)
  * @see #isListener(java.lang.Class)
  */
-public class ListenerSpinOver extends Spinner {
+public class ListenerSpinOver extends Evaluator {
 
-  private Spinner spinner;
+  private Evaluator evaluator;
   
   public ListenerSpinOver() {
-      this(Spin.getDefaultOffSpinner());
+      this(Spin.getDefaultOffEvaluator());
   }
 
-  public ListenerSpinOver(Spinner spinner) {
-      this.spinner = spinner;
+  public ListenerSpinOver(Evaluator evaluator) {
+      this.evaluator = evaluator;
   }
 
-  public void spin(Invocation invocation) throws Throwable {
+  public void evaluate(Invocation invocation) throws Throwable {
 
     Method method = invocation.getMethod(); 
     if (isListenerAdditionOrRemoval(method)) {
@@ -64,7 +64,7 @@ public class ListenerSpinOver extends Spinner {
       }
     }
 
-    spinner.spin(invocation);
+    evaluator.evaluate(invocation);
   }
 
   /**

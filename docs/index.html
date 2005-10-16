@@ -502,8 +502,8 @@ public void setValue(String value)
   </p>
   <p>
     The following diagram shows how this is used in <em>Spin</em>.
-    Each invocation of a bean's method is intercepted and handled by an
-    <a href="./api/spin/off/OffSpinner.html">OffSpinner</a>:</br>
+    Each invocation of a bean's method is intercepted and handled by a
+    <a href="./api/spin/off/SpinOffEvaluator.html">SpinOffEvaluator</a>:</br>
     getValue() is evaluated asynchronously on another thread (customizable with
     a <a href="./api/spin/off/Starter.html">Starter</a>) while Swing events are
     dispatched through a <a href="./api/spin/off/Dispatcher.html">Dispatcher</a>.
@@ -517,15 +517,42 @@ public void setValue(String value)
     For asynchronous notifications from the bean to the GUI we reuse the technique
     introduced in the previous sections.
     But this time the call to <code>invokeAndWait()</code> is encapsulated by
-    <em>Spin</em> with an <a href="./api/spin/over/OverSpinner.html">OverSpinner</a>:
+    <em>Spin</em> with a <a href="./api/spin/over/SpinOverEvaluator.html">SpinOverEvaluator</a>:
   </p>
   <p align="center">  
     <img src="sequencespinover.gif" alt="Spin over sequence"/>
   </p>
   <p>  
-    Please take a look at the <a href="./api/index.html">API</a> for further
-    details.
+    Please take a look at the full <a href="./api/index.html">API</a> for details
+    on how to customize <em>Spin</em>.
   </p>
+
+  <h2>
+    Utilizing CGLib
+  </h2>  
+  <p>
+    <a name="standard" />
+    Starting with release 1.4 Spin isn't any longer restricted on using JDK virtual
+    proxies. The creation of proxies is now encapsulated in the interface 
+    <a href="./api/spin/ProxyFactory.html">ProxyFactory</a>.
+  </p>
+  <p>
+	<em>Spin</em> contains a <a href="http://cglib.sourceforge.net">CGLib</a> specific implementation
+    <a href="./api/spin/CGLibProxyFactory.html">CGLibProxyFactory</a> that offers the
+    following benefits:
+    <ul>
+      <li>
+        improved performance on interception of method invocations
+      </li>
+      <li>
+        no need to to use interfaces for your beans as required by JDK proxies
+      </li>
+    </ul>
+    For this you just have to change the default factory of proxies:
+  </p>
+  <pre>
+    Spin.setDefaultProxyFactory(new CGLibProxyFactory());
+  </pre>
 
   <h2>
     Caveats

@@ -30,11 +30,11 @@ import java.util.Set;
  */
 public class JDKProxyFactory implements ProxyFactory {
 
-    public Object createProxy(Object object, Spinner spinner) {
+    public Object createProxy(Object object, Evaluator evaluator) {
         Class clazz = object.getClass();
         return Proxy.newProxyInstance(clazz.getClassLoader(),
                                       interfaces(clazz),
-                                      new SpinInvocationHandler(object, spinner));
+                                      new SpinInvocationHandler(object, evaluator));
     }
     
     /**
@@ -75,16 +75,16 @@ public class JDKProxyFactory implements ProxyFactory {
     }
     
     /**
-     * Abstract base class for handlers of invocations on the <em>Spin</em> proxy.
+     * Invocation handler for the <em>Spin</em> proxy.
      */
     private class SpinInvocationHandler implements InvocationHandler {
 
       private Object object;
-      private Spinner spinner;
+      private Evaluator evaluator;
       
-      public SpinInvocationHandler(Object object, Spinner spinner) {
+      public SpinInvocationHandler(Object object, Evaluator evaluator) {
           this.object  = object;
-          this.spinner = spinner;
+          this.evaluator = evaluator;
       }
       /**
        * Handle the invocation of a method on the <em>Spin</em> proxy.
@@ -106,7 +106,7 @@ public class JDKProxyFactory implements ProxyFactory {
           invocation.setMethod(method);
           invocation.setArguments(args);
           
-          spinner.spin(invocation);
+          evaluator.evaluate(invocation);
           
           return invocation.resultOrThrow();
         }

@@ -43,7 +43,7 @@ import spin.off.AWTReflectDispatcherFactory;
 import spin.off.Dispatcher;
 import spin.off.DispatcherFactory;
 import spin.off.InternalOptionPaneDispatcherFactory;
-import spin.off.OffSpinner;
+import spin.off.SpinOffEvaluator;
 
 /**
  * A demonstration of a GUI using different dispatchers.
@@ -66,7 +66,7 @@ public class DispatcherGUI extends JPanel {
    * @param bean      the bean for this demonstration
    */
   public DispatcherGUI(Bean aBean) {
-    Spin spin = new Spin(aBean, new OffSpinner(dispatcherFactory));
+    Spin spin = new Spin(aBean, new SpinOffEvaluator(dispatcherFactory));
         
     bean = (Bean)spin.getProxy();
 

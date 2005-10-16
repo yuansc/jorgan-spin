@@ -27,8 +27,8 @@ import javax.swing.SwingUtilities;
  * <code>java.awt.Dialog</code>s. Shows how events can be dispatched with
  * standard AWT.
  * 
- * @see spin.off.OffSpinner#OffSpinner(DispatcherFactory)
- * @see spin.off.OffSpinner#setDefaultDispatcherFactory(DispatcherFactory)
+ * @see spin.off.SpinOffEvaluator#SpinOffEvaluator(DispatcherFactory)
+ * @see spin.off.SpinOffEvaluator#setDefaultDispatcherFactory(DispatcherFactory)
  * @see AWTReflectDispatcherFactory
  */
 public abstract class DialogDispatcherFactory implements DispatcherFactory {

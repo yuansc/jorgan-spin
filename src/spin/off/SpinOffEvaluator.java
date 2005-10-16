@@ -21,16 +21,16 @@ package spin.off;
 import javax.swing.SwingUtilities;
 
 import spin.Invocation;
-import spin.Spinner;
+import spin.Evaluator;
 
 /**
- * A spinner for spin-off, i.e. all invocations are evaluated on another thread
- * then the EDT while further events are dispatched.
+ * An evaluator for spin-off, i.e. all invocations are evaluated on another thread
+ * than the EDT while further events are dispatched.
  * 
  * @see spin.off.Starter
  * @see spin.off.DispatcherFactory
  */
-public class OffSpinner extends Spinner {
+public class SpinOffEvaluator extends Evaluator {
 
     /**
      * Default factory of dispatchers.
@@ -53,42 +53,42 @@ public class OffSpinner extends Spinner {
     private Starter starter;
 
     /**
-     * Create a spinner for spin-off using the default dispatcherFactory and starter.
+     * Create an evaluator for spin-off using the default dispatcherFactory and starter.
      *
      * @see #setDefaultStarter(Starter)
      * @see #setDefaultDispatcherFactory(DispatcherFactory)
      */
-    public OffSpinner() {
+    public SpinOffEvaluator() {
         this(defaultDispatcherFactory, defaultStarter);
     }
 
     /**
-     * Create a spinner for spin-off using the default starter.
+     * Create an evaluator for spin-off using the default starter.
      * 
      * @param dispatcherFactory factory of dispatchers
      * @see #setDefaultStarter(Starter)
      */
-    public OffSpinner(DispatcherFactory dispatcherFactory) {
+    public SpinOffEvaluator(DispatcherFactory dispatcherFactory) {
         this(dispatcherFactory, defaultStarter);
     }
 
     /**
-     * Create a spinner for spin-off using the default dispatcherFactory.
+     * Create an evaluator for spin-off using the default dispatcherFactory.
      * 
      * @param starter   starter
      * @see #setDefaultDispatcherFactory(DispatcherFactory)
      */
-    public OffSpinner(Starter starter) {
+    public SpinOffEvaluator(Starter starter) {
         this(defaultDispatcherFactory, starter);
     }
 
     /**
-     * Create a spinner for spin-off.
+     * Create an evaluator for spin-off.
      *  
      * @param dispatcherFactory factory of dispatchers
      * @param starter           starter
      */
-    public OffSpinner(DispatcherFactory dispatcherFactory, Starter starter) {
+    public SpinOffEvaluator(DispatcherFactory dispatcherFactory, Starter starter) {
         this.dispatcherFactory = dispatcherFactory;
         this.starter = starter;
     }
@@ -98,7 +98,7 @@ public class OffSpinner extends Spinner {
      * 
      * @param invocation   invocation to spin-off
      */
-    public final void spin(final Invocation invocation) throws Throwable {
+    public final void evaluate(final Invocation invocation) throws Throwable {
 
         if (SwingUtilities.isEventDispatchThread()) {
             final Dispatcher dispatcher = dispatcherFactory.createDispatcher();
@@ -137,7 +137,7 @@ public class OffSpinner extends Spinner {
      */
     public static void setDefaultDispatcherFactory(
             DispatcherFactory dispatcherFactory) {
-        OffSpinner.defaultDispatcherFactory = dispatcherFactory;
+        SpinOffEvaluator.defaultDispatcherFactory = dispatcherFactory;
     }
 
     /**
@@ -155,6 +155,6 @@ public class OffSpinner extends Spinner {
      * @param starter   the starter to use as default
      */
     public static void setDefaultStarter(Starter starter) {
-        OffSpinner.defaultStarter = starter;
+        SpinOffEvaluator.defaultStarter = starter;
     }
 }

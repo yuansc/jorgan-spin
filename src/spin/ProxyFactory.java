@@ -24,11 +24,11 @@ package spin;
 public interface ProxyFactory {
     
     /**
-     * Create a proxy for the given object that forwards invocations to the spinner.
+     * Create a proxy for the given object that forwards invocations to the evaluator.
      * 
      * @param object    object to create proxy for
-     * @param spinner   spinner to forward invocations to
+     * @param evaluator evaluator to forward invocations to
      * @return          new proxy
      */
-    public Object createProxy(Object object, Spinner spinner);
+    public Object createProxy(Object object, Evaluator evaluator);
 }

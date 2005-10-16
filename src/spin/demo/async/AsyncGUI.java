@@ -83,7 +83,7 @@ public class AsyncGUI extends JPanel implements AsyncListener {
   public static void main(String[] args) {
 
     // Automatically spin-over all listeners
-    Spin.setDefaultOffSpinner(new ListenerSpinOver());
+    Spin.setDefaultOffEvaluator(new ListenerSpinOver());
 
     AsyncBean asyncBean = new AsyncBeanImpl();
     AsyncGUI  asyncGUI  = new AsyncGUI((AsyncBean)Spin.off(asyncBean));

@@ -30,8 +30,8 @@ import net.sf.cglib.proxy.MethodProxy;
  */
 public class CGLibProxyFactory implements ProxyFactory {
 
-    public Object createProxy(Object object, Spinner spinner) {
-        return Enhancer.create(object.getClass(), new SpinMethodInterceptor(object, spinner));
+    public Object createProxy(Object object, Evaluator evaluator) {
+        return Enhancer.create(object.getClass(), new SpinMethodInterceptor(object, evaluator));
     }
 
     /**
@@ -61,11 +61,11 @@ public class CGLibProxyFactory implements ProxyFactory {
     private class SpinMethodInterceptor implements MethodInterceptor {
 
       private Object object;
-      private Spinner spinner;
+      private Evaluator evaluator;
       
-      public SpinMethodInterceptor(Object object, Spinner spinner) {
+      public SpinMethodInterceptor(Object object, Evaluator evaluator) {
           this.object  = object;
-          this.spinner = spinner;
+          this.evaluator = evaluator;
       }
 
       public Object intercept(Object object, Method method, Object[] args, MethodProxy proxy) throws Throwable {
@@ -78,7 +78,7 @@ public class CGLibProxyFactory implements ProxyFactory {
           invocation.setMethod(method);
           invocation.setArguments(args);
           
-          spinner.spin(invocation);
+          evaluator.evaluate(invocation);
           
           return invocation.resultOrThrow();
       }

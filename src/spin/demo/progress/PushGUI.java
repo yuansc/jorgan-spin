@@ -96,7 +96,7 @@ public class PushGUI extends JPanel implements PropertyChangeListener {
   public static void main(String[] args) {
 
     // Automatically spin-over all listeners
-    Spin.setDefaultOffSpinner(new ListenerSpinOver());
+    Spin.setDefaultOffEvaluator(new ListenerSpinOver());
     
     ProgressBean progressBean = new ProgressBeanImpl();
     PushGUI      pushGUI      = new PushGUI((ProgressBean)Spin.off(progressBean));

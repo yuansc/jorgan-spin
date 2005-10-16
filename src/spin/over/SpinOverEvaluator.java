@@ -21,32 +21,32 @@ package spin.over;
 import javax.swing.SwingUtilities;
 
 import spin.Invocation;
-import spin.Spinner;
+import spin.Evaluator;
 
 /**
- * A spinner for spin-over, i.e. all invocations are evaluated on the EDT.
+ * An evaluator for spin-over, i.e. all invocations are evaluated on the EDT.
  */
-public class OverSpinner extends Spinner {
+public class SpinOverEvaluator extends Evaluator {
 
     private static boolean defaultWait = true;
     
     private boolean wait;
 
     /**
-     * Create a spinner for spin-over using the default wait setting.
+     * Create an evaluator for spin-over using the default wait setting.
      * 
      * @see #setDefaultWait(boolean)
      */
-    public OverSpinner() {
+    public SpinOverEvaluator() {
         this(defaultWait);
     }
 
     /**
-     * Create a spinner for spin-over .
+     * Create an evaluator for spin-over .
      * 
-     * @param wait  should this spinner wait for the evaluation to complete
+     * @param wait  should the invocation wait for the evaluation to complete
      */
-    public OverSpinner(boolean wait) {
+    public SpinOverEvaluator(boolean wait) {
         this.wait = wait;
     }
 
@@ -56,7 +56,7 @@ public class OverSpinner extends Spinner {
      * @param invocation
      *            invocation to spin-over
      */
-    public final void spin(final Invocation invocation) throws Throwable {
+    public final void evaluate(final Invocation invocation) throws Throwable {
 
         if (SwingUtilities.isEventDispatchThread()) {
             invocation.evaluate();

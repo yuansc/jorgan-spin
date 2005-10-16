@@ -19,15 +19,15 @@
 package spin;
 
 /**
- * A spinner of an invocation.
+ * An evaluator is used to evaluate invocations.
  */
-public abstract class Spinner {
+public abstract class Evaluator {
 
     /**
-     * Spin the given invocation.
+     * Evaluate the given invocation.
      * 
-     * @param invocation    invocation to spin
+     * @param invocation    invocation to evaluate
      * @throws Throwable
      */
-    public abstract void spin(Invocation invocation) throws Throwable;
+    public abstract void evaluate(Invocation invocation) throws Throwable;
 }

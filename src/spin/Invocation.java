@@ -22,7 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * A single invocation on a <em>Spin</em> proxy handled by a {@link Spinner}.
+ * A single invocation on a <em>Spin</em> proxy handled by a {@link Evaluator}s.
  */
 public class Invocation {
 

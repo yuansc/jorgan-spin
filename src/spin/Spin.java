@@ -18,8 +18,8 @@
  */
 package spin;
 
-import spin.off.OffSpinner;
-import spin.over.OverSpinner;
+import spin.off.SpinOffEvaluator;
+import spin.over.SpinOverEvaluator;
 
 /**
  * <p>
@@ -61,9 +61,9 @@ public class Spin {
 
     private static ProxyFactory defaultProxyFactory = new JDKProxyFactory();
 
-    private static Spinner defaultOffSpinner = new OffSpinner();
+    private static Evaluator defaultOffEvaluator = new SpinOffEvaluator();
 
-    private static Spinner defaultOverSpinner = new OverSpinner();
+    private static Evaluator defaultOverEvaluator = new SpinOverEvaluator();
 
     private Object proxy;
 
@@ -71,10 +71,10 @@ public class Spin {
      * Create a <em>Spin</em> wrapper for the given object.
      * 
      * @param object    object to wrap
-     * @param spinner   spinner of invocations on the given object
+     * @param evaluator evaluator of invocations on the given object
      */
-    public Spin(Object object, Spinner spinner) {
-        this(object, defaultProxyFactory, spinner);
+    public Spin(Object object, Evaluator evaluator) {
+        this(object, defaultProxyFactory, evaluator);
     }
 
     /**
@@ -82,20 +82,20 @@ public class Spin {
      * 
      * @param object        object to wrap
      * @param proxyFactory  factory for a proxy 
-     * @param spinner       spinner of invocations on the given object
+     * @param evaluator     evaluator of invocations on the given object
      */
-    public Spin(Object object, ProxyFactory proxyFactory, Spinner spinner) {
+    public Spin(Object object, ProxyFactory proxyFactory, Evaluator evaluator) {
         if (object == null) {
             throw new IllegalArgumentException("object must not be null");
         }
         if (proxyFactory == null) {
             throw new IllegalArgumentException("proxyFactory must not be null");
         }
-        if (spinner == null) {
-            throw new IllegalArgumentException("spinner must not be null");
+        if (evaluator == null) {
+            throw new IllegalArgumentException("evaluator must not be null");
         }
 
-        proxy = proxyFactory.createProxy(object, spinner);
+        proxy = proxyFactory.createProxy(object, evaluator);
     }
 
     /**
@@ -118,10 +118,10 @@ public class Spin {
      *            the object to spin-off
      * @return proxy for the given object
      * @see #setDefaultProxyFactory(ProxyFactory)
-     * @see #setDefaultOffSpinner(Spinner)
+     * @see #setDefaultOffEvaluator(Evaluator)
      */
     public static Object off(Object object) {
-        return new Spin(object, defaultProxyFactory, defaultOffSpinner).getProxy();
+        return new Spin(object, defaultProxyFactory, defaultOffEvaluator).getProxy();
     }
 
     /**
@@ -133,11 +133,10 @@ public class Spin {
      *            the object to spin-over
      * @return proxy for the given object
      * @see #setDefaultProxyFactory(ProxyFactory)
-     * @see #setDefaultOverSpinner(Spinner)
+     * @see #setDefaultOverEvaluator(Evaluator)
      */
     public static Object over(Object object) {
-        return new Spin(object, defaultProxyFactory, defaultOverSpinner)
-                .getProxy();
+        return new Spin(object, defaultProxyFactory, defaultOverEvaluator).getProxy();
     }
 
     /**
@@ -153,27 +152,27 @@ public class Spin {
     }
 
     /**
-     * Set the default spinner for spin-off.
+     * Set the default evaluator for spin-off.
      * 
-     * @param spinner   spinner to use for spin-off
+     * @param evaluator   evaluator to use for spin-off
      */
-    public static void setDefaultOffSpinner(Spinner spinner) {
-        if (spinner == null) {
-            throw new IllegalArgumentException("spinner must not be null");
+    public static void setDefaultOffEvaluator(Evaluator evaluator) {
+        if (evaluator == null) {
+            throw new IllegalArgumentException("evaluator must not be null");
         }
-        defaultOffSpinner = spinner;
+        defaultOffEvaluator = evaluator;
     }
 
     /**
-     * Set the default spinner for spin-over.
+     * Set the default evaluator for spin-over.
      * 
-     * @param spinner   spinner for spin-over
+     * @param evaluator   evaluator for spin-over
      */
-    public static void setDefaultOverSpinner(Spinner spinner) {
-        if (spinner == null) {
-            throw new IllegalArgumentException("spinner must not be null");
+    public static void setDefaultOverEvaluator(Evaluator evaluator) {
+        if (evaluator == null) {
+            throw new IllegalArgumentException("evaluator must not be null");
         }
-        defaultOverSpinner = spinner;
+        defaultOverEvaluator = evaluator;
     }
 
     /**
@@ -186,20 +185,20 @@ public class Spin {
     }
 
     /**
-     * Get the default spinner for spin-off.
+     * Get the default evaluator for spin-off.
      * 
-     * @return  spinner for spin-off
+     * @return  evaluator for spin-off
      */
-    public static Spinner getDefaultOffSpinner() {
-        return defaultOffSpinner;
+    public static Evaluator getDefaultOffEvaluator() {
+        return defaultOffEvaluator;
     }
 
     /**
-     * Get the default spinner for spin-over.
+     * Get the default evaluator for spin-over.
      * 
-     * @return  spinner for spin-over
+     * @return  evaluator for spin-over
      */
-    public static Spinner getDefaultOverSpinner() {
-        return defaultOverSpinner;
+    public static Evaluator getDefaultOverEvaluator() {
+        return defaultOverEvaluator;
     }
 }
