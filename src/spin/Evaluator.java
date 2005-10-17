@@ -20,6 +20,8 @@ package spin;
 
 /**
  * An evaluator is used to evaluate invocations.
+ * 
+ * @see spin.Invocation
  */
 public abstract class Evaluator {
 

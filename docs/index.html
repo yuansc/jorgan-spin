@@ -531,7 +531,7 @@ public void setValue(String value)
     Utilizing CGLib
   </h2>  
   <p>
-    <a name="standard" />
+    <a name="cglib" />
     Starting with release 1.4 Spin isn't any longer restricted on using JDK virtual
     proxies. The creation of proxies is now encapsulated in the interface 
     <a href="./api/spin/ProxyFactory.html">ProxyFactory</a>.
@@ -608,7 +608,7 @@ public void setValue(String value)
     <dt>Incomplete Event Handling</dt>
     <dd>
       An event that triggers <em>Spin</em> will not be completely precessed until
-      the return of the <em>Spin</em> invokation.<br/>
+      the return of the <em>Spin</em> invocation.<br/>
       This might lead to minor visual annoyances, e.g. a JComboBox that does not
       close its popup or a JButton that stays depressed while <em>Spin</em> is
       running. But this behaviour could also result in other unexpected behaviours

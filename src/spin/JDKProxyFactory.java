@@ -26,9 +26,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * A factory of proxies utilizing JDK proxies.
+ * A factory of proxies utilizing JDK virtual proxies.
  */
-public class JDKProxyFactory implements ProxyFactory {
+public class JDKProxyFactory extends ProxyFactory {
 
     public Object createProxy(Object object, Evaluator evaluator) {
         Class clazz = object.getClass();
@@ -54,14 +54,7 @@ public class JDKProxyFactory implements ProxyFactory {
       return (Class[])interfaces.toArray(new Class[interfaces.size()]);
     }
 
-    /**
-     * Test if the given object is a <em>Spin</em> proxy.
-     * 
-     * @param object    object to test
-     * @return          <code>true</code> if given object is a <em>Spin</em> proxy,
-     *                  <code>false</code> otherwise
-     */
-    public static boolean isSpinProxy(Object object) {
+    public boolean isProxy(Object object) {
       
       if (object == null) {
           return false;
@@ -72,6 +65,14 @@ public class JDKProxyFactory implements ProxyFactory {
       }
       
       return (Proxy.getInvocationHandler(object) instanceof SpinInvocationHandler); 
+    }
+    
+    protected boolean areProxyEqual(Object proxy1, Object proxy2) {
+        
+        SpinInvocationHandler handler1 = (SpinInvocationHandler)Proxy.getInvocationHandler(proxy1); 
+        SpinInvocationHandler handler2 = (SpinInvocationHandler)Proxy.getInvocationHandler(proxy2);
+        
+        return handler1.object.equals(handler2.object); 
     }
     
     /**
@@ -86,6 +87,7 @@ public class JDKProxyFactory implements ProxyFactory {
           this.object  = object;
           this.evaluator = evaluator;
       }
+      
       /**
        * Handle the invocation of a method on the <em>Spin</em> proxy.
        *
@@ -96,31 +98,8 @@ public class JDKProxyFactory implements ProxyFactory {
        * @throws Throwable if the wrapped method throws a <code>Throwable</code>
        */
       public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-    
-        if (Invocation.isEqualsMethod(method)) {
-          return new Boolean(isSpinProxy(args[0]) &&
-                             equals(Proxy.getInvocationHandler(args[0])));
-        } else {
-          Invocation invocation = new Invocation();
-          invocation.setObject(object);
-          invocation.setMethod(method);
-          invocation.setArguments(args);
           
-          evaluator.evaluate(invocation);
-          
-          return invocation.resultOrThrow();
-        }
+        return evaluteInvocation(evaluator, proxy, new Invocation(this.object, method, args));
       }
-      
-      /**
-       * Test on equality based on the wrapped object.
-       */
-      public boolean equals(Object object) {
-        if (object != null && object.getClass().equals(getClass())) {
-          SpinInvocationHandler handler = (SpinInvocationHandler)object;
-          return (this.object.equals(handler.object));
-        }
-        return false;
-      }      
     } 
 }

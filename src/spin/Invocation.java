@@ -22,21 +22,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * A single invocation on a <em>Spin</em> proxy handled by a {@link Evaluator}s.
+ * A single invocation on a <em>Spin</em> proxy handled by {@link Evaluator}s.
  */
 public class Invocation {
-
-    /**
-     * The equals method of class <code>object</code>.
-     */
-    private static final Method equalsMethod;
-    static {
-        try {
-            equalsMethod = Object.class.getDeclaredMethod("equals", new Class[]{Object.class});
-        } catch (Exception ex) {
-            throw new Error(ex);
-        }
-    }
 
     /**
      * The object this invocation is evaluated on.
@@ -68,6 +56,20 @@ public class Invocation {
      */
     private Object result;
 
+    /**
+     * Create an invocation of the given method on the given object with
+     * the given arguments.
+     * 
+     * @param object    object to invoke method on
+     * @param method    method to invoke
+     * @param args      arguments for the method invocation
+     */
+    public Invocation(Object object, Method method, Object[] args) {
+        this.object = object;
+        this.method = method;
+        this.args   = args;
+    }
+    
     /**
      * Set the object this invocation is evaluated on.
      * 
@@ -190,10 +192,10 @@ public class Invocation {
     }
 
     /**
-     * Get the result or throw the throwable.
+     * Get the result or throwable of this invocation's evaluation.
      * 
-     * @return result
-     * @throws Throwable
+     * @return result       result of evaluation
+     * @throws Throwable    throwable of evaluation
      */
     public Object resultOrThrow() throws Throwable {
         if (throwable != null) {
@@ -201,15 +203,5 @@ public class Invocation {
         } else {
             return result;
         }
-    }
-
-    /**
-     * Test if the given method is {@link Object#equals(Object)}.
-     * 
-     * @param method    method to test
-     * @return          true if method is the equal method
-     */
-    public static boolean isEqualsMethod(Method method) {
-        return equalsMethod.equals(method);
     }
 }

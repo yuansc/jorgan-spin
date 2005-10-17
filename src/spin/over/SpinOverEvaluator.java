@@ -42,7 +42,7 @@ public class SpinOverEvaluator extends Evaluator {
     }
 
     /**
-     * Create an evaluator for spin-over .
+     * Create an evaluator for spin-over.
      * 
      * @param wait  should the invocation wait for the evaluation to complete
      */
@@ -69,13 +69,16 @@ public class SpinOverEvaluator extends Evaluator {
             if (wait) {
                 SwingUtilities.invokeAndWait(runnable);
             } else {
-                if (invocation.getMethod().getReturnType() == null) {
-                    throw new IllegalArgumentException(
-                            "cannot invokeLater a method with non-void return");
+                if (invocation.getMethod().getReturnType() != Void.TYPE) {
+                    onInvokeLaterNonVoidReturnType(invocation);
                 }
                 SwingUtilities.invokeLater(runnable);
             }
         }
+    }
+
+    protected void onInvokeLaterNonVoidReturnType(Invocation invocation) throws IllegalArgumentException {
+        throw new IllegalArgumentException("invokeLater with non-void return type");
     }
 
     public static boolean getDefaultWait() {

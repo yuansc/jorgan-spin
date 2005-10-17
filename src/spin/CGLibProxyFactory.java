@@ -28,20 +28,13 @@ import net.sf.cglib.proxy.MethodProxy;
 /**
  * A factory of proxies utilizing CGLib.
  */
-public class CGLibProxyFactory implements ProxyFactory {
+public class CGLibProxyFactory extends ProxyFactory {
 
     public Object createProxy(Object object, Evaluator evaluator) {
         return Enhancer.create(object.getClass(), new SpinMethodInterceptor(object, evaluator));
     }
 
-    /**
-     * Test if the given object is a <em>Spin</em> proxy.
-     * 
-     * @param object    object to test
-     * @return          <code>true</code> if given object is a <em>Spin</em> proxy,
-     *                  <code>false</code> otherwise
-     */
-    public static boolean isSpinProxy(Object object) {
+    public boolean isProxy(Object object) {
       
         if (object == null) {
             return false;
@@ -55,8 +48,15 @@ public class CGLibProxyFactory implements ProxyFactory {
         return (factory.getCallback(0) instanceof SpinMethodInterceptor);
     }    
     
+    protected boolean areProxyEqual(Object proxy1, Object proxy2) {
+        SpinMethodInterceptor methodInterceptor1 = (SpinMethodInterceptor)((Factory)proxy1).getCallback(0);
+        SpinMethodInterceptor methodInterceptor2 = (SpinMethodInterceptor)((Factory)proxy2).getCallback(0);
+        
+        return methodInterceptor1.object == methodInterceptor2.object;
+    }
+    
     /**
-     * Abstract base class for handlers of invocations on the <em>Spin</em> proxy.
+     * Method interceptor for the <em>Spin</em> proxy.
      */
     private class SpinMethodInterceptor implements MethodInterceptor {
 
@@ -68,30 +68,18 @@ public class CGLibProxyFactory implements ProxyFactory {
           this.evaluator = evaluator;
       }
 
-      public Object intercept(Object object, Method method, Object[] args, MethodProxy proxy) throws Throwable {
-          if (Invocation.isEqualsMethod(method)) {
-              return new Boolean(isSpinProxy(args[0]) &&
-                                 equals(((Factory)args[0]).getCallback(0)));
-          }
-          Invocation invocation = new Invocation();
-          invocation.setObject(this.object);
-          invocation.setMethod(method);
-          invocation.setArguments(args);
-          
-          evaluator.evaluate(invocation);
-          
-          return invocation.resultOrThrow();
-      }
-      
       /**
-       * Test on equality based on the wrapped object.
+       * Handle the invocation of a method on the <em>Spin</em> proxy.
+       *
+       * @param proxy       the proxy instance
+       * @param method      the method to invoke
+       * @param args        the arguments for the method
+       * @param methodProxy non-intercepted proxy for the method
+       * @return            the result of the invocation on the wrapped object
+       * @throws Throwable if the wrapped method throws a <code>Throwable</code>
        */
-      public boolean equals(Object object) {
-        if (object != null && object.getClass().equals(getClass())) {
-          SpinMethodInterceptor interceptor = (SpinMethodInterceptor)object;
-          return (this.object.equals(interceptor.object));
-        }
-        return false;
+      public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+          return evaluteInvocation(evaluator, proxy, new Invocation(this.object, method, args));
       }      
     } 
 }

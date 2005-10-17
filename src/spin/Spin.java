@@ -23,8 +23,8 @@ import spin.over.SpinOverEvaluator;
 
 /**
  * <p>
- * <em>Spin</em> offers a transparent threading solution for non-freezing
- * Swing applications.
+ * <em>Spin</em> offers a transparent threading solution for developing
+ * non-freezing Swing applications.
  * </p>
  * <p>
  * Let <code>bean</code> be a reference to a non-visual (possibly
@@ -33,7 +33,7 @@ import spin.over.SpinOverEvaluator;
  * using one line of code:
  * 
  * <pre>
- * bean = (Bean) Spin.off(bean);
+ * bean = (Bean)Spin.off(bean);
  * </pre>
  * 
  * Now each method call on <code>bean</code> is executed on a separate thread,
@@ -56,6 +56,9 @@ import spin.over.SpinOverEvaluator;
  * 
  * @see #off(Object)
  * @see #over(Object)
+ * @see spin.ProxyFactory
+ * @see spin.off.SpinOffEvaluator
+ * @see spin.over.SpinOverEvaluator
  */
 public class Spin {
 
@@ -110,9 +113,13 @@ public class Spin {
     }
 
     /**
-     * Convenience method to spin-off the given object from Swing. <br>
+     * <p>
+     * Convenience method to spin-off the given object from Swing.
+     * <p/>
+     * <p>
      * The returned object can safely be casted to any interface the given
      * object implements.
+     * </p>
      * 
      * @param object
      *            the object to spin-off

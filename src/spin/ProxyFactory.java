@@ -18,17 +18,73 @@
  */
 package spin;
 
+import java.lang.reflect.Method;
+
 /**
- * A factory of proxies.
+ * A factory of proxies which intercept invocations, using Evaluators
+ * to evaluate them.
+ * 
+ * @see spin.Evaluator
  */
-public interface ProxyFactory {
-    
+public abstract class ProxyFactory {
+
     /**
-     * Create a proxy for the given object that forwards invocations to the evaluator.
+     * The equals method of class <code>object</code>.
+     */
+    private static final Method equalsMethod;
+    static {
+        try {
+            equalsMethod = Object.class.getDeclaredMethod("equals", new Class[]{Object.class});
+        } catch (Exception ex) {
+            throw new Error(ex);
+        }
+    }
+
+    /**
+     * Create a proxy for the given object that evaluates invocations 
+     * with the given evaluator.
      * 
      * @param object    object to create proxy for
-     * @param evaluator evaluator to forward invocations to
+     * @param evaluator evaluator to evaluate invocations with
      * @return          new proxy
      */
-    public Object createProxy(Object object, Evaluator evaluator);
+    public abstract Object createProxy(Object object, Evaluator evaluator);
+    
+    /**
+     * Test if the given object is a proxy created by this factory.
+     * 
+     * @param object    object to test
+     * @return          <code>true</code> if given object is a <em>Spin</em> proxy,
+     *                  <code>false</code> otherwise
+     */
+    public abstract boolean isProxy(Object object);
+
+    /**
+     * Test if the given proxies of this factory are intercepting the same object.
+     * 
+     * @param proxy1    first proxy
+     * @param proxy2    second proxy
+     * @return          true if both proxies are intercepting the same object
+     */
+    protected abstract boolean areProxyEqual(Object proxy1, Object proxy2);
+    
+    /**
+     * Evaluate the given invocation with the given evaluator.
+     * 
+     * @param evaluator     evaluator to evaluate with
+     * @param proxy         proxy that intcepted the invocation
+     * @param invocation    the invocation to evaluate
+     * @return              result of evaluation
+     * @throws Throwable
+     */
+    protected Object evaluteInvocation(Evaluator evaluator, Object proxy, Invocation invocation) throws Throwable {
+        if (equalsMethod.equals(invocation.getMethod())) {
+            return new Boolean(isProxy(invocation.getArguments()[0]) &&
+                               areProxyEqual(proxy, invocation.getArguments()[0]));
+        } else {
+            evaluator.evaluate(invocation);
+          
+            return invocation.resultOrThrow();
+        }
+    }
 }
