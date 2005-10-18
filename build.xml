@@ -47,6 +47,7 @@
         <zip destfile="./dist/spin-${spin.version}.zip">
             <fileset dir=".">
                 <exclude name="classes/**/*"/>
+                <exclude name="dist/spin-${spin.version}.zip"/>
             </fileset>
         </zip>
     </target>
