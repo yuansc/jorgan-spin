@@ -1,4 +1,4 @@
-package spin.test;
+package spin.off;
 
 import javax.swing.SwingUtilities;
 
