@@ -32,72 +32,73 @@ import javax.swing.SwingUtilities;
  * @see AWTReflectDispatcherFactory
  */
 public abstract class DialogDispatcherFactory implements DispatcherFactory {
-  
-  /**
-   * Create a dispatcher.
-   * 
-   * @return  dispatcher that does the actual dispatching
-   */
-  public Dispatcher createDispatcher() {
 
-    return new DialogDispatcher();
-  }
+	/**
+	 * Create a dispatcher.
+	 * 
+	 * @return dispatcher that does the actual dispatching
+	 */
+	public Dispatcher createDispatcher() {
 
-  /**
-   * Factory method to implement by subclasses to aquire a dialog.
-   *  
-   * @return    dialog
-   */
-  protected abstract Dialog aquireDialog(); 
+		return new DialogDispatcher();
+	}
 
-  /**
-   * Factory method to implement by subclasses to release a dialog.
-   *  
-   * @return    dialog
-   */
-  protected abstract void releaseDialog(Dialog dialog); 
-  
-  /**
-   * Dispatcher with <code>Dialog</code>.
-   */
-  protected class DialogDispatcher implements Dispatcher, Runnable {
+	/**
+	 * Factory method to implement by subclasses to aquire a dialog.
+	 * 
+	 * @return dialog
+	 */
+	protected abstract Dialog aquireDialog();
 
-    /**
-     * The dialog used to do the actual dispatching.
-     */
-    private Dialog dialog;
-    
-    /**
-     * Start the dispatching.
-     * 
-     * @throws Exception
-     */
-    public void start() throws Throwable {
+	/**
+	 * Factory method to implement by subclasses to release a dialog.
+	 * 
+	 * @param dialog
+	 *            the dialog to release
+	 */
+	protected abstract void releaseDialog(Dialog dialog);
 
-      dialog = aquireDialog();
-      dialog.setModal(true);
-      
-      dialog.setVisible(true);
-    }
-    
-    /**
-     * Stop dispatching.
-     */
-    public void stop() {
+	/**
+	 * Dispatcher with <code>Dialog</code>.
+	 */
+	protected class DialogDispatcher implements Dispatcher, Runnable {
 
-      SwingUtilities.invokeLater(this);
-    }
+		/**
+		 * The dialog used to do the actual dispatching.
+		 */
+		private Dialog dialog;
 
-    /**
-     * Called on the EDT to stop the dispatching.
-     */    
-    public void run() {
-      dialog.setVisible(false);
-      dialog.dispose();
+		/**
+		 * Start the dispatching.
+		 * 
+		 * @throws Exception
+		 */
+		public void start() throws Throwable {
 
-      releaseDialog(dialog);
-      
-      dialog = null;
-    }
-  }  
+			dialog = aquireDialog();
+			dialog.setModal(true);
+
+			dialog.setVisible(true);
+		}
+
+		/**
+		 * Stop dispatching.
+		 */
+		public void stop() {
+
+			SwingUtilities.invokeLater(this);
+		}
+
+		/**
+		 * Called on the EDT to stop the dispatching.
+		 */
+		public void run() {
+			dialog.setVisible(false);
+			dialog.dispose();
+
+			releaseDialog(dialog);
+
+			dialog = null;
+		}
+	}
 }

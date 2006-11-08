@@ -28,64 +28,83 @@ import spin.Evaluator;
  */
 public class SpinOverEvaluator extends Evaluator {
 
-    private static boolean defaultWait = true;
-    
-    private boolean wait;
+	private static boolean defaultWait = true;
 
-    /**
-     * Create an evaluator for spin-over using the default wait setting.
-     * 
-     * @see #setDefaultWait(boolean)
-     */
-    public SpinOverEvaluator() {
-        this(defaultWait);
-    }
+	private boolean wait;
 
-    /**
-     * Create an evaluator for spin-over.
-     * 
-     * @param wait  should the invocation wait for the evaluation to complete
-     */
-    public SpinOverEvaluator(boolean wait) {
-        this.wait = wait;
-    }
+	/**
+	 * Create an evaluator for spin-over using the default wait setting.
+	 * 
+	 * @see #setDefaultWait(boolean)
+	 */
+	public SpinOverEvaluator() {
+		this(defaultWait);
+	}
 
-    /**
-     * Spin the given invocation on the EDT.
-     * 
-     * @param invocation
-     *            invocation to spin-over
-     */
-    public final void evaluate(final Invocation invocation) throws Throwable {
+	/**
+	 * Create an evaluator for spin-over.
+	 * 
+	 * @param wait
+	 *            should the invocation wait for the evaluation to complete
+	 */
+	public SpinOverEvaluator(boolean wait) {
+		this.wait = wait;
+	}
 
-        if (SwingUtilities.isEventDispatchThread()) {
-            invocation.evaluate();
-        } else {
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    invocation.evaluate();
-                }
-            };
-            if (wait) {
-                SwingUtilities.invokeAndWait(runnable);
-            } else {
-                if (invocation.getMethod().getReturnType() != Void.TYPE) {
-                    onInvokeLaterNonVoidReturnType(invocation);
-                }
-                SwingUtilities.invokeLater(runnable);
-            }
-        }
-    }
+	/**
+	 * Spin the given invocation on the EDT.
+	 * 
+	 * @param invocation
+	 *            invocation to spin-over
+	 */
+	public final void evaluate(final Invocation invocation) throws Throwable {
 
-    protected void onInvokeLaterNonVoidReturnType(Invocation invocation) throws IllegalArgumentException {
-        throw new IllegalArgumentException("invokeLater with non-void return type");
-    }
+		if (SwingUtilities.isEventDispatchThread()) {
+			invocation.evaluate();
+		} else {
+			Runnable runnable = new Runnable() {
+				public void run() {
+					invocation.evaluate();
+				}
+			};
+			if (wait) {
+				SwingUtilities.invokeAndWait(runnable);
+			} else {
+				if (invocation.getMethod().getReturnType() != Void.TYPE) {
+					onInvokeLaterNonVoidReturnType(invocation);
+				}
+				SwingUtilities.invokeLater(runnable);
+			}
+		}
+	}
 
-    public static boolean getDefaultWait() {
-        return defaultWait;
-    }
+	/**
+	 * Hook method to handle a non-void return type of a invoked method.
+	 * 
+	 * @param invocation
+	 *            the invocation
+	 * @throws IllegalArgumentException
+	 */
+	protected void onInvokeLaterNonVoidReturnType(Invocation invocation) {
+		throw new RuntimeException("invokeLater with non-void return type");
+	}
 
-    public static void setDefaultWait(boolean wait) {
-        defaultWait = wait;
-    }
+	/**
+	 * Should evaluations wait for the invocations.
+	 * 
+	 * @return <code>true</code> if wait
+	 */
+	public static boolean getDefaultWait() {
+		return defaultWait;
+	}
+
+	/**
+	 * Should evaluations wait for the invocations.
+	 * 
+	 * @param wait
+	 *            <code>true</code> if wait
+	 */
+	public static void setDefaultWait(boolean wait) {
+		defaultWait = wait;
+	}
 }

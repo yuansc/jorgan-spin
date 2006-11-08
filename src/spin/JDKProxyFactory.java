@@ -30,76 +30,94 @@ import java.util.Set;
  */
 public class JDKProxyFactory extends ProxyFactory {
 
-    public Object createProxy(Object object, Evaluator evaluator) {
-        Class clazz = object.getClass();
-        return Proxy.newProxyInstance(clazz.getClassLoader(),
-                                      interfaces(clazz),
-                                      new SpinInvocationHandler(object, evaluator));
-    }
-    
-    /**
-     * Utility method to retrieve all implemented interfaces of a class
-     * and its superclasses.
-     * 
-     * @param clazz   class to get interfaces for
-     * @return        implemented interfaces
-     */
-    private static Class[] interfaces(Class clazz) {
-      Set interfaces = new HashSet();
-      while (clazz != null) {
-        interfaces.addAll(Arrays.asList(clazz.getInterfaces()));
-        clazz = clazz.getSuperclass();
-      }
+	public Object createProxy(Object object, Evaluator evaluator) {
+		Class clazz = object.getClass();
+		return Proxy
+				.newProxyInstance(clazz.getClassLoader(), interfaces(clazz),
+						new SpinInvocationHandler(object, evaluator));
+	}
 
-      return (Class[])interfaces.toArray(new Class[interfaces.size()]);
-    }
+	/**
+	 * Utility method to retrieve all implemented interfaces of a class and its
+	 * superclasses.
+	 * 
+	 * @param clazz
+	 *            class to get interfaces for
+	 * @return implemented interfaces
+	 */
+	private static Class[] interfaces(Class clazz) {
+		Set interfaces = new HashSet();
+		while (clazz != null) {
+			interfaces.addAll(Arrays.asList(clazz.getInterfaces()));
+			clazz = clazz.getSuperclass();
+		}
 
-    public boolean isProxy(Object object) {
-      
-      if (object == null) {
-          return false;
-      }
-      
-      if (!Proxy.isProxyClass(object.getClass())) {
-          return false;
-      }
-      
-      return (Proxy.getInvocationHandler(object) instanceof SpinInvocationHandler); 
-    }
-    
-    protected boolean areProxyEqual(Object proxy1, Object proxy2) {
-        
-        SpinInvocationHandler handler1 = (SpinInvocationHandler)Proxy.getInvocationHandler(proxy1); 
-        SpinInvocationHandler handler2 = (SpinInvocationHandler)Proxy.getInvocationHandler(proxy2);
-        
-        return handler1.object.equals(handler2.object); 
-    }
-    
-    /**
-     * Invocation handler for the <em>Spin</em> proxy.
-     */
-    private class SpinInvocationHandler implements InvocationHandler {
+		return (Class[]) interfaces.toArray(new Class[interfaces.size()]);
+	}
 
-      private Object object;
-      private Evaluator evaluator;
-      
-      public SpinInvocationHandler(Object object, Evaluator evaluator) {
-          this.object  = object;
-          this.evaluator = evaluator;
-      }
-      
-      /**
-       * Handle the invocation of a method on the <em>Spin</em> proxy.
-       *
-       * @param proxy      the proxy instance
-       * @param method     the method to invoke
-       * @param args       the arguments for the method
-       * @return           the result of the invocation on the wrapped object
-       * @throws Throwable if the wrapped method throws a <code>Throwable</code>
-       */
-      public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-          
-        return evaluteInvocation(evaluator, proxy, new Invocation(this.object, method, args));
-      }
-    } 
+	public boolean isProxy(Object object) {
+
+		if (object == null) {
+			return false;
+		}
+
+		if (!Proxy.isProxyClass(object.getClass())) {
+			return false;
+		}
+
+		return (Proxy.getInvocationHandler(object) instanceof SpinInvocationHandler);
+	}
+
+	protected boolean areProxyEqual(Object proxy1, Object proxy2) {
+
+		SpinInvocationHandler handler1 = (SpinInvocationHandler) Proxy
+				.getInvocationHandler(proxy1);
+		SpinInvocationHandler handler2 = (SpinInvocationHandler) Proxy
+				.getInvocationHandler(proxy2);
+
+		return handler1.object.equals(handler2.object);
+	}
+
+	/**
+	 * Invocation handler for the <em>Spin</em> proxy.
+	 */
+	private class SpinInvocationHandler implements InvocationHandler {
+
+		private Object object;
+
+		private Evaluator evaluator;
+
+		/**
+		 * Create a new handler of invocations.
+		 * 
+		 * @param object
+		 *            the object to invoke methods on
+		 * @param evaluator
+		 *            the evaluator of methods
+		 */
+		public SpinInvocationHandler(Object object, Evaluator evaluator) {
+			this.object = object;
+			this.evaluator = evaluator;
+		}
+
+		/**
+		 * Handle the invocation of a method on the <em>Spin</em> proxy.
+		 * 
+		 * @param proxy
+		 *            the proxy instance
+		 * @param method
+		 *            the method to invoke
+		 * @param args
+		 *            the arguments for the method
+		 * @return the result of the invocation on the wrapped object
+		 * @throws Throwable
+		 *             if the wrapped method throws a <code>Throwable</code>
+		 */
+		public Object invoke(Object proxy, Method method, Object[] args)
+				throws Throwable {
+
+			return evaluteInvocation(evaluator, proxy, new Invocation(
+					this.object, method, args));
+		}
+	}
 }

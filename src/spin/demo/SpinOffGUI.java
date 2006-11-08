@@ -34,52 +34,55 @@ import spin.Spin;
  */
 public class SpinOffGUI extends JApplet {
 
-  private JLabel  label  = new JLabel("???");
-  private JButton button = new JButton("Get");
+	private JLabel label = new JLabel("???");
 
-  private Bean bean;
+	private JButton button = new JButton("Get");
 
-  /**
-   * Constructor.
-   *
-   * @param bean      the bean for this demonstration
-   */
-  public SpinOffGUI(Bean aBean) {
-    bean = aBean;
+	private Bean bean;
 
-    getContentPane().setLayout(new BorderLayout());
+	/**
+	 * Constructor.
+	 * 
+	 * @param aBean
+	 *            the bean for this demonstration
+	 */
+	public SpinOffGUI(Bean aBean) {
+		bean = aBean;
 
-    getContentPane().add(label, BorderLayout.CENTER);
-    label.setHorizontalAlignment(JLabel.CENTER);
-    label.setVerticalAlignment  (JLabel.CENTER);
+		getContentPane().setLayout(new BorderLayout());
 
-    getContentPane().add(button, BorderLayout.SOUTH);
-    button.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent ev) {
-        label.setText("...");
-        button.setEnabled(false);
+		getContentPane().add(label, BorderLayout.CENTER);
+		label.setHorizontalAlignment(JLabel.CENTER);
+		label.setVerticalAlignment(JLabel.CENTER);
 
-        String value = bean.getValue();
+		getContentPane().add(button, BorderLayout.SOUTH);
+		button.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				label.setText("...");
+				button.setEnabled(false);
 
-        label.setText(value);
-        button.setEnabled(true);
-      }
-    });
-  }
+				String value = bean.getValue();
 
-  /**
-   * Entrance to this demo.
-   */
-  public static void main(String[] args) {
+				label.setText(value);
+				button.setEnabled(true);
+			}
+		});
+	}
 
-    Bean       bean       = new BeanImpl();
-    SpinOffGUI spinOffGUI = new SpinOffGUI((Bean)Spin.off(bean));
+	/**
+	 * Entrance to this demo.
+	 * 
+	 * @param args	the arguments
+	 */
+	public static void main(String[] args) {
 
-    JFrame frame = new JFrame("Spin off");
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.getContentPane().add(spinOffGUI);
-    frame.pack();
-    frame.setVisible(true);
-  }    
+		Bean bean = new BeanImpl();
+		SpinOffGUI spinOffGUI = new SpinOffGUI((Bean) Spin.off(bean));
+
+		JFrame frame = new JFrame("Spin off");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.getContentPane().add(spinOffGUI);
+		frame.pack();
+		frame.setVisible(true);
+	}
 }
-

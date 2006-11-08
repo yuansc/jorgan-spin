@@ -32,7 +32,7 @@ public interface Dispatcher {
    * This method is always called on the EDT. It must not return until
    * {@link #stop()} is called.
    * 
-   * @throws Exception  in case of any exceptions while dispatching
+   * @throws Throwable  in case of any exceptions while dispatching
    */
   public void start() throws Throwable;      
 

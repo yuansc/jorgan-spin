@@ -16,33 +16,17 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package spin.over;
+package spin;
 
-import java.awt.Component;
+import spin.JDKProxyFactory;
+import spin.ProxyFactory;
 
 /**
- * Exception signaling a violation of the EDT rule.
+ * Test of JDK proxies.
  */
-public class EDTRuleViolation extends RuntimeException {
+public class JDKProxyFactoryTest extends AbstractProxyFactoryTest {
 
-	private Component component;
-
-	/**
-	 * Create an exception.
-	 * 
-	 * @param component
-	 *            the component that triggered the violation.
-	 */
-	public EDTRuleViolation(Component component) {
-		this.component = component;
-	}
-
-	/**
-	 * Get the component that triggered the violation.
-	 * 
-	 * @return the violated component
-	 */
-	public Component getComponent() {
-		return component;
+	protected ProxyFactory getFactory() {
+		return new JDKProxyFactory();
 	}
 }

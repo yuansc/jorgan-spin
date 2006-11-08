@@ -33,47 +33,50 @@ import spin.Spin;
  */
 public class SpinOverGUI extends JPanel implements PropertyChangeListener {
 
-  private JLabel label = new JLabel("???");
+	private JLabel label = new JLabel("???");
 
-  /**
-   * Constructor.
-   */
-  public SpinOverGUI() {
-    setLayout(new BorderLayout());
+	/**
+	 * Constructor.
+	 */
+	public SpinOverGUI() {
+		setLayout(new BorderLayout());
 
-    add(label, BorderLayout.CENTER);
-    label.setHorizontalAlignment(JLabel.CENTER);
-    label.setVerticalAlignment  (JLabel.CENTER);
-  }
+		add(label, BorderLayout.CENTER);
+		label.setHorizontalAlignment(JLabel.CENTER);
+		label.setVerticalAlignment(JLabel.CENTER);
+	}
 
-  /**
-   * @see java.beans.PropertyChangeListener
-   */
-  public void propertyChange(PropertyChangeEvent evt) {
+	/**
+	 * @see java.beans.PropertyChangeListener
+	 */
+	public void propertyChange(PropertyChangeEvent evt) {
 
-    Assert.isEDT();
-    
-    if ("value".equals(evt.getPropertyName())) {
-      String text = (String)evt.getNewValue();
+		Assert.isEDT();
 
-      label.setText(text);
-    }
-  }
+		if ("value".equals(evt.getPropertyName())) {
+			String text = (String) evt.getNewValue();
 
-  /**
-   * Entrance to this demo.
-   */
-  public static void main(String[] args) {
+			label.setText(text);
+		}
+	}
 
-    Bean        bean        = new BeanImpl();
-    SpinOverGUI spinOverGUI = new SpinOverGUI();
-    bean.addPropertyChangeListener((PropertyChangeListener)Spin.over(spinOverGUI));
+	/**
+	 * Entrance to this demo.
+	 * 
+	 * @param args
+	 *            the arguments
+	 */
+	public static void main(String[] args) {
 
-    JFrame frame = new JFrame("Spin over");
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.getContentPane().add(spinOverGUI);
-    frame.pack();
-    frame.setVisible(true);
-  }
+		Bean bean = new BeanImpl();
+		SpinOverGUI spinOverGUI = new SpinOverGUI();
+		bean.addPropertyChangeListener((PropertyChangeListener) Spin
+				.over(spinOverGUI));
+
+		JFrame frame = new JFrame("Spin over");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.getContentPane().add(spinOverGUI);
+		frame.pack();
+		frame.setVisible(true);
+	}
 }
-

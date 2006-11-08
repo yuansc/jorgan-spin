@@ -63,6 +63,14 @@ public class CGLibProxyFactory extends ProxyFactory {
       private Object object;
       private Evaluator evaluator;
       
+		/**
+		 * Create a new handler of invocations.
+		 * 
+		 * @param object
+		 *            the object to invoke methods on
+		 * @param evaluator
+		 *            the evaluator of methods
+		 */
       public SpinMethodInterceptor(Object object, Evaluator evaluator) {
           this.object  = object;
           this.evaluator = evaluator;
