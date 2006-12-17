@@ -18,9 +18,6 @@
  */
 package spin;
 
-import spin.JDKProxyFactory;
-import spin.ProxyFactory;
-
 /**
  * Test of JDK proxies.
  */
@@ -28,5 +25,20 @@ public class JDKProxyFactoryTest extends AbstractProxyFactoryTest {
 
 	protected ProxyFactory getFactory() {
 		return new JDKProxyFactory();
+	}
+
+	/**
+	 * Test handling of non-public interfaces.
+	 */
+	public void testNonPublicInterface() {
+		NonPublicInterface implementor = new NonPublicInterface() {
+
+		};
+
+		getFactory().createProxy(implementor, createEvaluator());
+	}
+
+	interface NonPublicInterface {
+
 	}
 }

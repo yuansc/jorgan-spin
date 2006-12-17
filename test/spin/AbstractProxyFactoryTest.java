@@ -129,7 +129,7 @@ public abstract class AbstractProxyFactoryTest extends TestCase {
 		}
 	}
 
-	private Evaluator createEvaluator() {
+	protected Evaluator createEvaluator() {
 		return new Evaluator() {
 			public void evaluate(Invocation invocation) throws Throwable {
 				invocation.evaluate();
