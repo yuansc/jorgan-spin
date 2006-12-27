@@ -20,8 +20,8 @@ package spin;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -30,25 +30,46 @@ import java.util.Set;
  */
 public class JDKProxyFactory extends ProxyFactory {
 
+	/**
+	 * The created proxy will not implement non-public interfaces from different
+	 * class loaders since these yield an {@link IllegalAccessError} on
+	 * construction of a proxy.
+	 */
 	public Object createProxy(Object object, Evaluator evaluator) {
 		Class clazz = object.getClass();
-		return Proxy
-				.newProxyInstance(clazz.getClassLoader(), interfaces(clazz),
-						new SpinInvocationHandler(object, evaluator));
+
+		return Proxy.newProxyInstance(clazz.getClassLoader(),
+				getAccessibleInterfaces(clazz), new SpinInvocationHandler(
+						object, evaluator));
 	}
 
 	/**
-	 * Utility method to retrieve all implemented interfaces of a class and its
+	 * Utility method to retrieve all accessible interfaces of a class and its
 	 * superclasses.
 	 * 
 	 * @param clazz
 	 *            class to get interfaces for
 	 * @return implemented interfaces
 	 */
-	private static Class[] interfaces(Class clazz) {
+	private static Class[] getAccessibleInterfaces(Class clazz) {
+		ClassLoader loader = clazz.getClassLoader();
+
 		Set interfaces = new HashSet();
 		while (clazz != null) {
-			interfaces.addAll(Arrays.asList(clazz.getInterfaces()));
+			Class[] candidates = clazz.getInterfaces();
+			for (int c = 0; c < candidates.length; c++) {
+				Class candidate = candidates[c];
+
+				if (!Modifier.isPublic(candidate.getModifiers())) {
+					if (candidate.getClassLoader() != loader) {
+						// see note
+						continue;
+					}
+				}
+
+				interfaces.add(candidate);
+			}
+
 			clazz = clazz.getSuperclass();
 		}
 

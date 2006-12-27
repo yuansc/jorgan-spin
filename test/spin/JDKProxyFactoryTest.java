@@ -18,6 +18,8 @@
  */
 package spin;
 
+import javax.swing.JFrame;
+
 /**
  * Test of JDK proxies.
  */
@@ -28,17 +30,17 @@ public class JDKProxyFactoryTest extends AbstractProxyFactoryTest {
 	}
 
 	/**
-	 * Test handling of non-public interfaces.
+	 * Test handling of non-accessible interfaces.<br>
+	 * Since Java 1.6 all {@link javax.swing.JComponent}s implement a package
+	 * protected interface
+	 * <code>javax.swing.TransferHandler.HasGetTransferHandler</code>.
+	 * 
+	 * @see JDKProxyFactory#createProxy(Object, Evaluator)
 	 */
-	public void testNonPublicInterface() {
-		NonPublicInterface implementor = new NonPublicInterface() {
+	public void testNonAccessibleInterface() {
 
-		};
+		getFactory().createProxy(new JFrame() {
 
-		getFactory().createProxy(implementor, createEvaluator());
-	}
-
-	interface NonPublicInterface {
-
+		}, createEvaluator());
 	}
 }
