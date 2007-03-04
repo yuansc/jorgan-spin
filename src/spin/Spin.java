@@ -20,6 +20,7 @@ package spin;
 
 import spin.off.SpinOffEvaluator;
 import spin.over.SpinOverEvaluator;
+import spin.proxy.JDKProxyFactory;
 
 /**
  * <p>

@@ -27,8 +27,8 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import spin.CGLibProxyFactory;
 import spin.Spin;
+import spin.proxy.CGLibProxyFactory;
 
 /**
  * A demonstration of a GUI handling an exception.

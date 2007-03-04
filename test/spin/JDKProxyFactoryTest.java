@@ -20,6 +20,8 @@ package spin;
 
 import javax.swing.JFrame;
 
+import spin.proxy.JDKProxyFactory;
+
 /**
  * Test of JDK proxies.
  */

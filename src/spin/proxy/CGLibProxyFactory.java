@@ -16,9 +16,13 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package spin;
+package spin.proxy;
 
 import java.lang.reflect.Method;
+
+import spin.Evaluator;
+import spin.Invocation;
+import spin.ProxyFactory;
 
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.Factory;

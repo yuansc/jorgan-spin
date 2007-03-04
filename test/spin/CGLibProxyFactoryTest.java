@@ -18,8 +18,8 @@
  */
 package spin;
 
-import spin.CGLibProxyFactory;
 import spin.ProxyFactory;
+import spin.proxy.CGLibProxyFactory;
 
 /**
  * Test of CGLib proxies.
