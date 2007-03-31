@@ -29,7 +29,7 @@ public class ExceptionBean {
 	 * Possibly throw an exception.
 	 */
 	public void possiblyThrowException() throws BeanException {
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		long time = (long) (Math.random() * 5000);
 

@@ -59,7 +59,7 @@ public class BeanImpl implements Bean {
 	 *            listener to add
 	 */
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		this.listener = listener;
 	}
@@ -70,7 +70,7 @@ public class BeanImpl implements Bean {
 	 * @return the value
 	 */
 	public String getValue() {
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		try {
 			synchronized (this) {

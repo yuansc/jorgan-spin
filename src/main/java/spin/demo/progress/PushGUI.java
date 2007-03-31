@@ -82,7 +82,7 @@ public class PushGUI extends JPanel implements PropertyChangeListener {
 	 */
 	public void propertyChange(PropertyChangeEvent evt) {
 
-		Assert.isEDT();
+		Assert.onEDT();
 
 		if ("value".equals(evt.getPropertyName())) {
 			double status = ((Double) evt.getNewValue()).doubleValue();

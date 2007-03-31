@@ -74,7 +74,7 @@ public class AsyncGUI extends JPanel implements AsyncListener {
 	 * @see AsyncListener
 	 */
 	public void finished(int number, long duration) {
-		Assert.isEDT();
+		Assert.onEDT();
 
 		textArea.append("Duration of " + number + " was " + duration + "\n");
 	}

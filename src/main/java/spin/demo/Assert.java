@@ -34,18 +34,18 @@ public class Assert {
 	/**
 	 * Must be executed on the EDT.
 	 */
-	public static void isEDT() {
+	public static void onEDT() {
 		if (!SwingUtilities.isEventDispatchThread()) {
-			throw new Error("assertion failed: not on EDT");
+			throw new Error("assertion failed: on EDT");
 		}
 	}
 
 	/**
-	 * Must not be executed on the EDT.
+	 * Must be executed off the EDT.
 	 */
-	public static void isNotEDT() {
+	public static void offEDT() {
 		if (SwingUtilities.isEventDispatchThread()) {
-			throw new Error("assertion failed: on EDT");
+			throw new Error("assertion failed: off EDT");
 		}
 	}
 }

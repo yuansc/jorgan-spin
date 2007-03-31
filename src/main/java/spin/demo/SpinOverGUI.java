@@ -51,7 +51,7 @@ public class SpinOverGUI extends JPanel implements PropertyChangeListener {
 	 */
 	public void propertyChange(PropertyChangeEvent evt) {
 
-		Assert.isEDT();
+		Assert.onEDT();
 
 		if ("value".equals(evt.getPropertyName())) {
 			String text = (String) evt.getNewValue();

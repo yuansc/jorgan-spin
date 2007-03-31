@@ -68,7 +68,7 @@ public class CallbackGUI extends JPanel implements Prompt {
 	 */
 	public boolean prompt(String value) {
 
-		Assert.isEDT();
+		Assert.onEDT();
 
 		return JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
 				CallbackGUI.this, value, "Prompt", JOptionPane.YES_NO_OPTION);

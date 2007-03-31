@@ -39,7 +39,7 @@ public class AsyncBeanImpl implements AsyncBean, Runnable {
 	 *            listener to add
 	 */
 	public void addListener(AsyncListener listener) {
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		listeners.add(listener);
 	}
@@ -49,7 +49,7 @@ public class AsyncBeanImpl implements AsyncBean, Runnable {
 	 */
 	public void start() {
 
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		new Thread(this).start();
 	}

@@ -47,7 +47,7 @@ public class ProgressBeanImpl implements ProgressBean {
 	 *            listener to add
 	 */
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		this.listener = listener;
 	}
@@ -56,7 +56,7 @@ public class ProgressBeanImpl implements ProgressBean {
 	 * Start.
 	 */
 	public void start() {
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		cancelled = false;
 
@@ -87,7 +87,7 @@ public class ProgressBeanImpl implements ProgressBean {
 	 * Cancel the progress.
 	 */
 	public void cancel() {
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		cancelled = true;
 	}
@@ -98,7 +98,7 @@ public class ProgressBeanImpl implements ProgressBean {
 	 * @return status of progress
 	 */
 	public double getStatus() {
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		return status;
 	}

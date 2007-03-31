@@ -79,7 +79,7 @@ public class FileService implements DirectoryService {
 	 */
 	public Directory getRoot() {
 
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		return new FileDirectory(root, true);
 	}
@@ -94,7 +94,7 @@ public class FileService implements DirectoryService {
 	public Directory[] getChildren(Directory directory)
 			throws DirectoryServiceException {
 
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		File file = ((FileDirectory) directory).file;
 		File[] files = file.listFiles(filter);

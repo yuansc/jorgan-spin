@@ -49,7 +49,7 @@ public class PromptBeanImpl implements PromptBean {
 	 */
 	public int size() {
 
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		return values.size();
 	}
@@ -62,7 +62,7 @@ public class PromptBeanImpl implements PromptBean {
 	 */
 	public String get(int index) {
 
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		return (String) values.get(index);
 	}
@@ -75,7 +75,7 @@ public class PromptBeanImpl implements PromptBean {
 	 */
 	public void process(int index) {
 
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		try {
 			synchronized (this) {
@@ -94,7 +94,7 @@ public class PromptBeanImpl implements PromptBean {
 	 */
 	public void process(Prompt prompt) {
 
-		Assert.isNotEDT();
+		Assert.offEDT();
 
 		for (int i = values.size() - 1; i >= 0; i--) {
 			String value = (String) values.get(i);
