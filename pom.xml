@@ -4,9 +4,9 @@
   <groupId>spin</groupId>
   <artifactId>spin</artifactId>
   <packaging>jar</packaging>
-  <version>1.5</version>
+  <version>1.5b1</version>
   <name>Spin</name>
-  <url>http://spin.sourceforge.net</url>
+  <url>https://github.com/yuansc/spin</url>
   <description>Transparent threading solution for non-freezing Swing applications.</description>
 
   <licenses>
